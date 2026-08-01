@@ -1,0 +1,26 @@
+# esy.homes - India's Zero Brokerage PG, Room & Homestay Rental Discovery Engine
+
+> esy.homes is a rental marketplace platform for finding verified PGs (Paying Guest Hostels), monthly flats/rooms, and daily homestays across major Indian tech hubs and cities.
+
+## Key Features & Value Proposition
+- Zero Brokerage Fees & Direct Owner Contact via Instant Call / WhatsApp.
+- Complete PG specifics: Food inclusions (Veg/Non-veg), AC/Non-AC, Single/Double/Triple sharing, Gender filters (Mens, Womens, Unisex), Notice periods, Gate timings.
+- Verified Localities in India: Bengaluru (HSR Layout, Koramangala, Indiranagar, Whitefield, Electronic City, Marathahalli), Mumbai (Powai, Bandra, Andheri), Hyderabad (Gachibowli, HITEC City, Madhapur), Delhi NCR (Gurugram Cyber City, Noida Sector 62), Pune (Hinjewadi, Viman Nagar), Goa.
+- Transparent Monthly & Daily Pricing in Indian Rupees (INR ₹) with security deposit details.
+
+## Property Types Covered
+1. **PG / Hostels (`pg_hostel`)**: Monthly accommodation with single/shared rooms, meal plans, Wi-Fi, housekeeping, and security.
+2. **Monthly Rooms / Flats (`monthly_room`)**: 1BHK, 2BHK, 3BHK, Studio apartments, or single rooms on monthly lease without brokerage.
+3. **Daily Homestays (`daily_rental`)**: Vacation rentals, villas, and service apartments booked per night.
+
+## Search API & Filter Capabilities
+- Destination / City / Neighborhood / Landmark keyword query
+- Rental type (`daily_rental`, `pg_hostel`, `monthly_room`)
+- Gender preference (`mens`, `womens`, `unisex`)
+- Price Range (₹ INR per month or per night)
+- Key Amenities (Wi-Fi, Air Conditioning, Washing Machine, Power Backup, Gym, Parking, 3 Times Meals)
+- Direct Owner Instant Call availability
+
+## Contact & Platform Info
+- Platform: https://esy.homes
+- Domain Focus: Real Estate, Rental Accommodation, PG Finder India

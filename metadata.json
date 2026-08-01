@@ -1,0 +1,6 @@
+{
+  "name": "esy.homes",
+  "description": "Lightweight, low-latency property listing platform with Airbnb-style UI, OpenStreetMap integration with nearby POIs, WhatsApp/Call booking, availability calendars, and self-hosting support for Turso DB and Cloudflare R2.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
