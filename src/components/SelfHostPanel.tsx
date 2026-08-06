@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS availability_calendar (
                   <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
                   <div>
                     <h4 className="font-bold text-emerald-900 text-sm">Self-Hosted Connection Ready</h4>
-                    <p className="text-xs text-emerald-700">esy.homes is configured for zero lock-in deployment.</p>
+                    <p className="text-xs text-emerald-700">ezy.homes is configured for zero lock-in deployment.</p>
                   </div>
                 </div>
                 <span className="px-3 py-1 rounded-full bg-emerald-600 text-white font-bold text-xs">Active</span>
@@ -335,7 +335,7 @@ CREATE TABLE IF NOT EXISTS availability_calendar (
               <span className="text-emerald-600 font-bold flex items-center gap-1">
                 <Check className="w-4 h-4" /> Config Saved
               </span>
-            ) : 'esy.homes Self-Host Stack v1.0'}
+            ) : 'ezy.homes Self-Host Stack v1.0'}
           </span>
 
           <div className="flex items-center gap-2">

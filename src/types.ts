@@ -87,6 +87,8 @@ export interface Property {
   instantCallAvailable: boolean;
   createdAt: string;
   isFeatured?: boolean;
+  isPremium?: boolean;
+  isVerified?: boolean;
 }
 
 export interface SearchFilters {

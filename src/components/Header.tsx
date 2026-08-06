@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { SearchFilters } from '../types';
-import { Search, PlusCircle, MapPin, SlidersHorizontal, X, Calendar, Users } from 'lucide-react';
+import { Search, PlusCircle, MapPin, SlidersHorizontal, X, Calendar, Users, Building2 } from 'lucide-react';
 
 interface HeaderProps {
   filters: SearchFilters;
   onFilterChange: (filters: SearchFilters) => void;
   onOpenHostModal: () => void;
+  onOpenMyListingsModal?: () => void;
   onOpenSelfHostModal?: () => void;
   onOpenSitemapModal: () => void;
   totalResultsCount: number;
@@ -15,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   filters,
   onFilterChange,
   onOpenHostModal,
+  onOpenMyListingsModal,
   onOpenSitemapModal,
   totalResultsCount,
 }) => {
@@ -74,6 +76,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {onOpenMyListingsModal && (
+              <button
+                onClick={onOpenMyListingsModal}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-800 hover:text-rose-600 bg-slate-100 hover:bg-slate-200/80 rounded-full transition-all border border-slate-200/80"
+                title="Manage active property listings"
+              >
+                <Building2 className="w-3.5 h-3.5 text-rose-500" />
+                <span>My Listings</span>
+              </button>
+            )}
             
             {/* Host Your Property Button */}
             <button

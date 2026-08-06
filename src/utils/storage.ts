@@ -1,18 +1,19 @@
 import { Property, SelfHostConfig } from '../types';
 import { INITIAL_PROPERTIES } from '../data/mockProperties';
+import { filterActiveProperties } from './expiration';
 
 const PROPERTIES_KEY = 'esy_homes_properties_v2_inr';
 const WISHLIST_KEY = 'esy_homes_wishlist_v1';
 const SELF_HOST_CONFIG_KEY = 'esy_homes_selfhost_config_v1';
 
 export const DEFAULT_SELF_HOST_CONFIG: SelfHostConfig = {
-  tursoDatabaseUrl: 'libsql://esy-homes-main-db.turso.io',
-  tursoAuthToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.demo_token_esy_homes',
-  cloudflareR2Bucket: 'esy-homes-media-cdn',
-  cloudflareR2AccountId: 'f9e3e1ab01f14614b332d8e700e7d2a2',
-  cloudflareR2PublicDomain: 'https://cdn.esy.homes',
+  tursoDatabaseUrl: 'libsql://ezy-homes-vercel-icfg-cnxx2242ugtirkjfrpb3fzwu.aws-ap-south-1.turso.io',
+  tursoAuthToken: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODU5OTA3OTUsImlkIjoiMDE5ZmQ1NTgtY2UwMS03ZTM1LWJjZmYtYmQwMWNmNmYxYmY5Iiwia2lkIjoiRHFFM252OEVEWXp6Z1hrMXQ5ODBINXR5MmJNUVpOOWcxMFF2RnhLM3BJcyIsInJpZCI6IjBlMzE0YzY3LThkYWItNDM2Ni1iOTBkLWYzYTc3M2I5NzRmNiJ9.qRocAor7xXLZaX_mpwNegNMq-3ukrzFzVl7hqrhPhQx10xchY2nZ3AJzYEawh5H9fQi-p4CJrTKEtfTe5ovxAg',
+  cloudflareR2Bucket: 'ezyhomes-images',
+  cloudflareR2AccountId: '3b25d6fc00d328f896be8a3382324774',
+  cloudflareR2PublicDomain: 'https://pub-d98afd66f3284a9c98a71404da771d04.r2.dev',
   cloudflareRocketLoaderEnabled: true,
-  customDomain: 'esy.homes',
+  customDomain: 'ezy.homes',
   isConfigured: true,
 };
 
@@ -20,14 +21,23 @@ export function getStoredProperties(): Property[] {
   try {
     const raw = localStorage.getItem(PROPERTIES_KEY);
     if (!raw) {
-      localStorage.setItem(PROPERTIES_KEY, JSON.stringify(INITIAL_PROPERTIES));
-      return INITIAL_PROPERTIES;
+      const activeInitial = filterActiveProperties(INITIAL_PROPERTIES);
+      localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeInitial));
+      return activeInitial;
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_PROPERTIES;
+    const list = Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_PROPERTIES;
+    const activeOnly = filterActiveProperties(list);
+    
+    // Save back if any expired listings were purged
+    if (activeOnly.length !== list.length) {
+      localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeOnly));
+    }
+    
+    return activeOnly;
   } catch (e) {
     console.error('Failed to parse stored properties:', e);
-    return INITIAL_PROPERTIES;
+    return filterActiveProperties(INITIAL_PROPERTIES);
   }
 }
 
@@ -43,10 +53,23 @@ export function savePropertyToStore(property: Property): Property[] {
     updated = [property, ...current];
   }
   
+  const activeUpdated = filterActiveProperties(updated);
+
+  try {
+    localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeUpdated));
+  } catch (e) {
+    console.error('Failed to save property:', e);
+  }
+  return activeUpdated;
+}
+
+export function deletePropertyFromStore(id: string): Property[] {
+  const current = getStoredProperties();
+  const updated = current.filter((p) => p.id !== id);
   try {
     localStorage.setItem(PROPERTIES_KEY, JSON.stringify(updated));
   } catch (e) {
-    console.error('Failed to save property:', e);
+    console.error('Failed to delete property:', e);
   }
   return updated;
 }

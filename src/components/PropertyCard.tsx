@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Currency, Property } from '../types';
 import { formatRentalRate } from '../utils/currencies';
-import { Star, Heart, Share2, ChevronLeft, ChevronRight, PhoneCall, ShieldCheck, MapPin, Users, Calendar, Building, Zap } from 'lucide-react';
+import { getTimeAgo } from '../utils/expiration';
+import { Star, Heart, Share2, ChevronLeft, ChevronRight, PhoneCall, ShieldCheck, MapPin, Users, Calendar, Building, Zap, Clock } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
@@ -122,9 +123,15 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
         {/* Badges Overlay */}
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start">
-          <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-emerald-600 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-emerald-400/30">
-            <ShieldCheck className="w-2.5 h-2.5" /> ezy.homes free Listing
-          </span>
+          {property.isPremium ? (
+            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-amber-300">
+              <Zap className="w-2.5 h-2.5 fill-current text-amber-200" /> ★ Premium Verified
+            </span>
+          ) : (
+            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-emerald-600 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-emerald-400/30">
+              <ShieldCheck className="w-2.5 h-2.5" /> ezy.homes Verified
+            </span>
+          )}
           <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] tracking-wide shadow-xs backdrop-blur-md ${badge.bg}`}>
             {badge.label}
           </span>
@@ -181,10 +188,16 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </div>
         </div>
 
-        {/* Property Title */}
-        <p className="text-xs text-gray-600 line-clamp-1 font-medium">
-          {property.title}
-        </p>
+        {/* Property Title & Listing Age */}
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-xs text-gray-600 line-clamp-1 font-medium flex-1">
+            {property.title}
+          </p>
+          <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/80 shrink-0 flex items-center gap-0.5" title={`Listed ${getTimeAgo(property.createdAt)}`}>
+            <Clock className="w-2.5 h-2.5 text-slate-500" />
+            {getTimeAgo(property.createdAt)}
+          </span>
+        </div>
 
         {/* PG or Monthly Specifics */}
         {property.pgDetails && (

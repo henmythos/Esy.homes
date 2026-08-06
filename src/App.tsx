@@ -1,19 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Currency, Property, SearchFilters, SelfHostConfig } from './types';
-import { getStoredProperties, savePropertyToStore, getWishlistIds, toggleWishlistId, getSelfHostConfig, saveSelfHostConfig } from './utils/storage';
+import { getStoredProperties, savePropertyToStore, deletePropertyFromStore, getWishlistIds, toggleWishlistId, getSelfHostConfig, saveSelfHostConfig } from './utils/storage';
 import { Header } from './components/Header';
 import { CategoryFilterBar } from './components/CategoryFilterBar';
 import { PropertyCard } from './components/PropertyCard';
 import { PropertyGridSkeleton } from './components/PropertySkeleton';
 import { PropertyDetailModal } from './components/PropertyDetailModal';
 import { HostPropertyModal } from './components/HostPropertyModal';
+import { MyListingsModal } from './components/MyListingsModal';
 import { SelfHostPanel } from './components/SelfHostPanel';
 import { SitemapDirectoryModal } from './components/SitemapDirectoryModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { SEOStructuredData } from './components/SEOStructuredData';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { parseNaturalLanguageQuery } from './utils/aiQueryParser';
-import { Heart, Search, MapPin, MessageSquare } from 'lucide-react';
+import { Heart, Search, MapPin, MessageSquare, Building2 } from 'lucide-react';
 
 export default function App() {
   // Main Data States
@@ -26,6 +27,7 @@ export default function App() {
   // UI View States
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isHostModalOpen, setIsHostModalOpen] = useState<boolean>(false);
+  const [isMyListingsModalOpen, setIsMyListingsModalOpen] = useState<boolean>(false);
   const [isSelfHostModalOpen, setIsSelfHostModalOpen] = useState<boolean>(false);
   const [isSitemapModalOpen, setIsSitemapModalOpen] = useState<boolean>(false);
   const [activeMobileTab, setActiveMobileTab] = useState<'explore' | 'wishlist'>('explore');
@@ -134,6 +136,15 @@ export default function App() {
     handleSelectProperty(newProperty);
   };
 
+  // Handle Deleting Host Property
+  const handleDeleteProperty = (id: string) => {
+    const updatedList = deletePropertyFromStore(id);
+    setProperties(updatedList);
+    if (selectedProperty?.id === id) {
+      handleSelectProperty(null);
+    }
+  };
+
   // Handle Saving Self-Host Settings
   const handleSaveSelfHostConfig = (newConfig: SelfHostConfig) => {
     saveSelfHostConfig(newConfig);
@@ -205,6 +216,7 @@ export default function App() {
         filters={filters}
         onFilterChange={handleFilterChange}
         onOpenHostModal={() => setIsHostModalOpen(true)}
+        onOpenMyListingsModal={() => setIsMyListingsModalOpen(true)}
         onOpenSelfHostModal={() => setIsSelfHostModalOpen(true)}
         onOpenSitemapModal={() => setIsSitemapModalOpen(true)}
         totalResultsCount={filteredProperties.length}
@@ -263,7 +275,7 @@ export default function App() {
             <div className="flex flex-col gap-1 px-4">
               <h3 className="text-lg font-bold text-gray-900">No properties found</h3>
               <p className="text-xs text-gray-500">
-                Try searching for another city or area in India, resetting filters, or list your property on esy.homes.
+                Try searching for another city or area in India, resetting filters, or list your property on ezy.homes.
               </p>
             </div>
             <div className="flex gap-2">
@@ -306,7 +318,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-500">
           <div className="flex flex-col gap-1 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2">
-              <span className="font-black text-gray-900 text-sm">esy<span className="text-rose-500">.homes</span></span>
+              <span className="font-black text-gray-900 text-sm">ezy<span className="text-rose-500">.homes</span></span>
               <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-bold border border-rose-100">
                 Direct Rental Platform India
               </span>
@@ -319,6 +331,10 @@ export default function App() {
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-gray-700">
             <button onClick={() => setIsSitemapModalOpen(true)} className="hover:text-rose-600 transition-colors flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-rose-500" /> Cities Sitemap & Directory
+            </button>
+            <span>•</span>
+            <button onClick={() => setIsMyListingsModalOpen(true)} className="hover:text-rose-600 transition-colors flex items-center gap-1 text-rose-600 font-extrabold">
+              <Building2 className="w-3.5 h-3.5 text-rose-500" /> My Listings
             </button>
             <span>•</span>
             <button onClick={() => setIsHostModalOpen(true)} className="hover:text-rose-600 transition-colors">
@@ -357,6 +373,16 @@ export default function App() {
         <HostPropertyModal
           onSaveProperty={handleSaveNewProperty}
           onClose={() => setIsHostModalOpen(false)}
+        />
+      )}
+
+      {/* My Listings Management Modal */}
+      {isMyListingsModalOpen && (
+        <MyListingsModal
+          properties={properties}
+          onDeleteProperty={handleDeleteProperty}
+          onOpenHostModal={() => setIsHostModalOpen(true)}
+          onClose={() => setIsMyListingsModalOpen(false)}
         />
       )}
 
