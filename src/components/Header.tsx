@@ -144,15 +144,36 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Destination Input */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-rose-500" /> City / Locality / Landmark
+                  <MapPin className="w-3.5 h-3.5 text-rose-500" /> City / Locality / Keyword
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Bengaluru, HSR Layout, Mumbai, Goa, Cyber Towers..."
+                  placeholder="e.g. Rental houses in Bengaluru, OYO rooms, HSR Layout..."
                   value={filters.destination}
                   onChange={(e) => onFilterChange({ ...filters, destination: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-hidden text-sm"
                 />
+
+                {/* Targeted High-Value Keyword Suggestions */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide py-0.5">Popular:</span>
+                  {[
+                    'Rental Houses',
+                    'Free Rental Listing',
+                    'Property Listing',
+                    'OYO Rooms',
+                    'Independent Room Stays',
+                  ].map((keyword) => (
+                    <button
+                      key={keyword}
+                      type="button"
+                      onClick={() => onFilterChange({ ...filters, destination: keyword })}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-[11px] font-semibold text-slate-600 transition-colors border border-slate-200/80"
+                    >
+                      {keyword}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Dates Row */}

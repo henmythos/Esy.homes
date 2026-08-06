@@ -186,6 +186,34 @@ export const SitemapDirectoryModal: React.FC<SitemapDirectoryModalProps> = ({
               </div>
             </div>
 
+            {/* High-Value Focus Keyword Searches */}
+            <div>
+              <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Search className="w-3.5 h-3.5 text-rose-500" /> High-Demand Target Searches
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: 'Rental Houses', query: 'Rental Houses' },
+                  { label: 'Free Rental Listing', query: 'Free Rental Listing' },
+                  { label: 'Property Listing', query: 'Property Listing' },
+                  { label: 'OYO Rooms Style Stays', query: 'OYO Rooms' },
+                  { label: 'Independent Room Stays', query: 'Independent Room Stays' },
+                  { label: 'No Brokerage PG', query: 'PG Hostel' },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      onSelectCityArea(currentCityObj.name, item.query);
+                      onClose();
+                    }}
+                    className="px-2.5 py-1 rounded-lg border border-rose-100 bg-rose-50/50 hover:bg-rose-100 text-rose-700 text-xs font-medium transition-all"
+                  >
+                    #{item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Structured SEO Breadcrumb & Schema Information */}
             <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 text-[11px] text-gray-500 space-y-1">
               <div className="font-semibold text-gray-700 flex items-center gap-1">

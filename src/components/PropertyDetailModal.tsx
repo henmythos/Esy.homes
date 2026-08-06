@@ -177,11 +177,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               {property.isPremium ? (
                 <span className="px-2.5 py-0.5 rounded-full font-black text-[10px] tracking-wider uppercase bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs flex items-center gap-1 border border-amber-300">
-                  <Zap className="w-3 h-3 fill-current text-amber-200" /> ★ Premium Verified Listing
+                  <Zap className="w-3 h-3 fill-current text-amber-200" /> ★ ezy.homes Verified Listing
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full font-bold text-[10px] tracking-wide uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" /> ezy.homes Verified Listing
+                <span className="px-2.5 py-0.5 rounded-full font-bold text-[10px] tracking-wide uppercase bg-slate-100 text-slate-800 border border-slate-200 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" /> ezy.homes Free Listing
                 </span>
               )}
             </div>

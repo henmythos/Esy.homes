@@ -125,11 +125,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start">
           {property.isPremium ? (
             <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-amber-300">
-              <Zap className="w-2.5 h-2.5 fill-current text-amber-200" /> ★ Premium Verified
+              <Zap className="w-2.5 h-2.5 fill-current text-amber-200" /> ★ ezy.homes Verified
             </span>
           ) : (
-            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-emerald-600 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-emerald-400/30">
-              <ShieldCheck className="w-2.5 h-2.5" /> ezy.homes Verified
+            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-slate-900/85 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-slate-700/50">
+              <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" /> ezy.homes Free Listing
             </span>
           )}
           <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] tracking-wide shadow-xs backdrop-blur-md ${badge.bg}`}>

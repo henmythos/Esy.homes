@@ -113,11 +113,13 @@ export const SEOStructuredData: React.FC<SEOStructuredDataProps> = ({
 
     } else {
       // Default Global Site Meta
-      const defaultTitle = 'ezy.homes | No Brokerage PG, Monthly Rooms & Homestays in India';
-      const defaultDesc = 'Discover verified PGs, Mens & Womens hostels, monthly flats, and daily homestays with zero brokerage in Bengaluru, Mumbai, Hyderabad, Delhi NCR, Pune & Goa.';
+      const defaultTitle = 'ezy.homes | Rental Houses, Free Rental Listing & Independent Room Stays';
+      const defaultDesc = 'Discover verified rental houses, independent room stays, monthly flats, and OYO rooms style homestays with free property listing for owners & zero brokerage in India.';
+      const defaultKeywords = 'rental houses, free rental listing, property listing, oyo rooms, independent room stays, house for rent without broker, mens pg, womens pg, monthly flat rental, zero brokerage room stays, ezy homes';
       
       document.title = defaultTitle;
       updateMeta('name', 'description', defaultDesc);
+      updateMeta('name', 'keywords', defaultKeywords);
       updateMeta('property', 'og:title', defaultTitle);
       updateMeta('property', 'og:description', defaultDesc);
       updateMeta('property', 'og:url', `${origin}/`);
