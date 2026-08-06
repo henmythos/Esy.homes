@@ -13,7 +13,7 @@ import { SitemapDirectoryModal } from './components/SitemapDirectoryModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { SEOStructuredData } from './components/SEOStructuredData';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import { parseNaturalLanguageQuery } from './utils/aiQueryParser';
+import { parseNaturalLanguageQuery, extractLocationTokens } from './utils/aiQueryParser';
 import { Heart, Search, MapPin, MessageSquare, Building2 } from 'lucide-react';
 
 export default function App() {
@@ -170,15 +170,32 @@ export default function App() {
         if (prop.pgDetails && prop.pgDetails.gender !== filters.genderFilter) return false;
       }
 
-      // Destination Search (matches city, state, neighborhood, title, address)
-      if (filters.destination.trim()) {
-        const query = filters.destination.toLowerCase().trim();
-        const matchCity = prop.location.city.toLowerCase().includes(query);
-        const matchState = prop.location.state?.toLowerCase().includes(query);
-        const matchNeighborhood = prop.location.neighborhood?.toLowerCase().includes(query);
-        const matchTitle = prop.title.toLowerCase().includes(query);
-        const matchAddress = prop.location.address.toLowerCase().includes(query);
-        if (!matchCity && !matchState && !matchNeighborhood && !matchTitle && !matchAddress) return false;
+      // Destination Search (matches city, state, neighborhood, title, address, description, landmarks)
+      if (filters.destination && filters.destination.trim()) {
+        const rawQuery = filters.destination.toLowerCase().trim();
+        const searchableText = [
+          prop.title,
+          prop.location.city,
+          prop.location.state,
+          prop.location.neighborhood,
+          prop.location.address,
+          prop.description,
+          prop.category,
+          ...(prop.nearbyPOIs?.map((p) => p.name) || []),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        // Direct exact substring match check
+        if (!searchableText.includes(rawQuery)) {
+          // Fallback to tokenized search: every location/keyword token must match in property text
+          const tokens = extractLocationTokens(rawQuery);
+          if (tokens.length > 0) {
+            const allTokensMatch = tokens.every((token) => searchableText.includes(token));
+            if (!allTokensMatch) return false;
+          }
+        }
       }
 
       // Category Filter

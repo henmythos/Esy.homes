@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Currency, Property } from '../types';
 import { formatPrice } from '../utils/currencies';
 import { ALL_AMENITIES } from '../data/amenities';
@@ -7,7 +7,8 @@ import { OpenStreetMap } from './OpenStreetMap';
 import { 
   X, Star, Heart, MapPin, Calendar, Users, Phone, MessageSquare, 
   ShieldCheck, Check, Info, Share2, Sparkles, AlertCircle, Clock,
-  Wifi, Wind, Zap, Droplets, Briefcase, Utensils, Waves, Car, Shield, Sun, Tv, Shirt, Maximize2, Flame
+  Wifi, Wind, Zap, Droplets, Briefcase, Utensils, Waves, Car, Shield, Sun, Tv, Shirt, Maximize2, Flame,
+  ChevronLeft, ChevronRight, Home, Eye
 } from 'lucide-react';
 
 interface PropertyDetailModalProps {
@@ -43,13 +44,38 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   onToggleWishlist,
   onClose,
 }) => {
+  const propertyImages = property.images && property.images.length > 0
+    ? property.images
+    : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80'];
+
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
+  const [isFullscreenView, setIsFullscreenView] = useState(false);
   const [checkInDate, setCheckInDate] = useState<string>('2026-08-10');
   const [checkOutDate, setCheckOutDate] = useState<string>('2026-08-14');
   const [guestsCount, setGuestsCount] = useState<number>(2);
   const [customMessage, setCustomMessage] = useState<string>('');
   const [isCopied, setIsCopied] = useState(false);
   const [isCopiedLink, setIsCopiedLink] = useState(false);
+
+  const handlePrevPhoto = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setActivePhotoIdx((prev) => (prev === 0 ? propertyImages.length - 1 : prev - 1));
+  };
+
+  const handleNextPhoto = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setActivePhotoIdx((prev) => (prev === propertyImages.length - 1 ? 0 : prev + 1));
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') handlePrevPhoto();
+      if (e.key === 'ArrowRight') handleNextPhoto();
+      if (e.key === 'Escape') setIsFullscreenView(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [propertyImages.length]);
 
   const propertyShareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/?property=${property.id}`
@@ -180,28 +206,93 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Image Gallery Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 rounded-2xl overflow-hidden max-h-[380px]">
-            <div className="md:col-span-2 relative h-64 md:h-full bg-gray-100">
+          {/* Image Gallery Stage with Left/Right Slide Controls, Watermark & Thumbnails */}
+          <div className="flex flex-col gap-3 select-none">
+            
+            {/* Primary Main Image Showcase */}
+            <div className="relative h-72 sm:h-96 md:h-[420px] w-full rounded-2xl bg-slate-950 overflow-hidden group border border-slate-200/80 shadow-xs">
               <img
-                src={property.images[activePhotoIdx] || property.images[0]}
+                src={propertyImages[activePhotoIdx] || propertyImages[0]}
                 alt={property.title}
-                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => setIsFullscreenView(true)}
+                className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-101"
               />
+
+              {/* Auto Watermark in Left Corner (Always on all property images) */}
+              <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/75 backdrop-blur-md text-white text-xs sm:text-sm font-black tracking-wide border border-white/25 shadow-xl">
+                <Home className="w-4 h-4 text-rose-400 fill-rose-400/20 shrink-0" />
+                <span className="text-rose-400 font-extrabold">ezy</span>
+                <span className="text-white">.homes</span>
+              </div>
+
+              {/* Left & Right Slide Controls */}
+              {propertyImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrevPhoto}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-full bg-black/65 hover:bg-black/90 text-white shadow-xl transition-all backdrop-blur-xs z-20 hover:scale-110 active:scale-95 border border-white/25"
+                    title="Previous Photo (Left Arrow)"
+                  >
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextPhoto}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-full bg-black/65 hover:bg-black/90 text-white shadow-xl transition-all backdrop-blur-xs z-20 hover:scale-110 active:scale-95 border border-white/25"
+                    title="Next Photo (Right Arrow)"
+                  >
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </>
+              )}
+
+              {/* Photo Counter Pill */}
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 px-3 py-1 rounded-full bg-black/65 backdrop-blur-md text-white font-mono text-xs font-bold border border-white/20 shadow-xs">
+                {activePhotoIdx + 1} / {propertyImages.length}
+              </div>
+
+              {/* Full View Button */}
+              <button
+                type="button"
+                onClick={() => setIsFullscreenView(true)}
+                className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-20 px-3.5 py-1.5 sm:py-2 rounded-xl bg-black/80 hover:bg-black text-white font-bold text-xs flex items-center gap-1.5 backdrop-blur-md shadow-lg border border-white/25 transition-all hover:scale-105 active:scale-95"
+              >
+                <Maximize2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Full View</span>
+              </button>
             </div>
-            <div className="hidden md:grid grid-cols-2 col-span-2 gap-2 h-full">
-              {property.images.slice(0, 4).map((img, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setActivePhotoIdx(idx)}
-                  className={`relative h-full bg-gray-100 overflow-hidden cursor-pointer border-2 transition-all ${
-                    activePhotoIdx === idx ? 'border-rose-500 scale-[0.98]' : 'border-transparent hover:opacity-90'
-                  }`}
-                >
-                  <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
+
+            {/* Clickable Thumbnail Carousel Bar */}
+            {propertyImages.length > 0 && (
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-thin">
+                {propertyImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActivePhotoIdx(idx)}
+                    className={`relative h-16 w-24 sm:h-20 sm:w-32 shrink-0 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                      activePhotoIdx === idx
+                        ? 'border-rose-500 ring-2 ring-rose-500/30 scale-[1.02] opacity-100 shadow-md'
+                        : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-400'
+                    }`}
+                  >
+                    <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                    
+                    {/* Auto Watermark badge on thumbnails */}
+                    <div className="absolute bottom-1 left-1 z-10 pointer-events-none flex items-center gap-0.5 px-1 py-0.2 rounded bg-black/80 text-[8px] font-black text-white border border-white/20">
+                      <span className="text-rose-400">ezy</span>
+                      <span>.homes</span>
+                    </div>
+
+                    <div className="absolute top-1 right-1 z-10 px-1 py-0.2 rounded bg-black/70 text-[8px] font-mono text-white">
+                      #{idx + 1}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
           </div>
 
           {/* Main Layout: Left Details + Right Booking Card */}
@@ -488,6 +579,96 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         </div>
 
       </div>
+
+      {/* Fullscreen Image Lightbox Modal with Auto Watermark & Slide Navigation */}
+      {isFullscreenView && (
+        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200 select-none">
+          
+          {/* Lightbox Header */}
+          <div className="flex items-center justify-between z-30 pb-2 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/10 text-white font-extrabold text-xs border border-white/20">
+                <Home className="w-4 h-4 text-rose-400 fill-rose-400/20" />
+                <span className="text-rose-400">ezy</span>
+                <span className="text-white">.homes Full View</span>
+              </div>
+              <span className="text-xs font-mono font-bold text-slate-300 hidden sm:inline">
+                {property.title}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono font-bold text-white bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                Photo {activePhotoIdx + 1} of {propertyImages.length}
+              </span>
+              <button
+                onClick={() => setIsFullscreenView(false)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all hover:scale-110"
+                title="Close Full View (Esc)"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Full View Stage */}
+          <div className="relative flex-1 my-4 flex items-center justify-center overflow-hidden">
+            <img
+              src={propertyImages[activePhotoIdx]}
+              alt={`${property.title} Full View ${activePhotoIdx + 1}`}
+              className="max-h-[78vh] w-auto max-w-full object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200"
+            />
+
+            {/* Auto Watermark in Left Corner on Full View Image */}
+            <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 z-30 pointer-events-none flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-black/80 backdrop-blur-md text-white text-sm sm:text-base font-black tracking-wide border border-white/30 shadow-2xl">
+              <Home className="w-4 h-4 text-rose-400 fill-rose-400/20" />
+              <span className="text-rose-400 font-black">ezy</span>
+              <span className="text-white font-black">.homes</span>
+            </div>
+
+            {/* Navigation Arrows */}
+            {propertyImages.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevPhoto}
+                  className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-black/70 hover:bg-black/95 text-white shadow-2xl transition-all z-30 border border-white/30 hover:scale-110 active:scale-90"
+                  title="Previous (Left Arrow)"
+                >
+                  <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+                </button>
+                <button
+                  onClick={handleNextPhoto}
+                  className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-full bg-black/70 hover:bg-black/95 text-white shadow-2xl transition-all z-30 border border-white/30 hover:scale-110 active:scale-90"
+                  title="Next (Right Arrow)"
+                >
+                  <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Bottom Thumbnail Strip */}
+          <div className="flex items-center justify-center gap-2 overflow-x-auto py-2 z-30 max-w-full">
+            {propertyImages.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActivePhotoIdx(idx)}
+                className={`relative h-14 w-20 sm:h-16 sm:w-24 shrink-0 rounded-xl overflow-hidden border-2 transition-all ${
+                  activePhotoIdx === idx
+                    ? 'border-rose-500 scale-105 ring-2 ring-rose-500/50 opacity-100'
+                    : 'border-white/20 opacity-50 hover:opacity-85'
+                }`}
+              >
+                <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                <div className="absolute bottom-0.5 left-0.5 z-10 pointer-events-none text-[7px] font-black text-rose-400 bg-black/80 px-1 rounded-xs">
+                  ezy
+                </div>
+              </button>
+            ))}
+          </div>
+
+        </div>
+      )}
     </div>
   );
 };

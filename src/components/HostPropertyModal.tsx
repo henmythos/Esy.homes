@@ -31,12 +31,12 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
   const [lat, setLat] = useState<number>(12.9352);
   const [lng, setLng] = useState<number>(77.6245);
 
-  // Pricing (INR)
-  const [priceINR, setPriceINR] = useState<number>(8500);
-  const [securityDepositINR, setSecurityDepositINR] = useState<number>(5000);
-  const [maxGuests, setMaxGuests] = useState<number>(1);
+  // Pricing (INR) - Owner set
+  const [priceINR, setPriceINR] = useState<number>(0);
+  const [securityDepositINR, setSecurityDepositINR] = useState<number>(0);
+  const [maxGuests, setMaxGuests] = useState<number>(2);
   const [bedrooms, setBedrooms] = useState<number>(1);
-  const [beds, setBeds] = useState<number>(2);
+  const [beds, setBeds] = useState<number>(1);
   const [bathrooms, setBathrooms] = useState<number>(1);
 
   // PG Hostel Details
@@ -45,11 +45,9 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
   const [pgFoodIncluded, setPgFoodIncluded] = useState<boolean>(true);
   const [pgAcAvailable, setPgAcAvailable] = useState<boolean>(true);
 
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(['wifi', 'solar', 'ac', 'kitchen', 'security']);
-  const [imageUrls, setImageUrls] = useState<string[]>([
-    'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80',
-    'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1200&q=80'
-  ]);
+  // Owner sets amenities and images (starts empty so owner explicitly chooses)
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -193,7 +191,11 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
       return;
     }
 
-    const priceUSD = Math.round((priceINR || 5000) / 83.5);
+    const finalPriceINR = Number(priceINR) > 0 
+      ? Number(priceINR) 
+      : rentalType === 'daily_rental' ? 2500 : rentalType === 'pg_hostel' ? 8500 : 18000;
+
+    const priceUSD = Math.round(finalPriceINR / 83.5);
 
     const newProperty: Property = {
       id: `prop-${Date.now()}`,
@@ -211,7 +213,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
         lat: Number(lat) || 12.9352,
         lng: Number(lng) || 77.6245,
       },
-      priceINR: Number(priceINR) || 5000,
+      priceINR: finalPriceINR,
       pricePerNightUSD: priceUSD,
       securityDepositINR: rentalType !== 'daily_rental' ? Number(securityDepositINR) : 0,
       cleaningFeeUSD: 0,
@@ -233,7 +235,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
       images: imageUrls.length > 0 ? imageUrls : [
         'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80'
       ],
-      amenities: selectedAmenities,
+      amenities: selectedAmenities.length > 0 ? selectedAmenities : ['wifi', 'security'],
       nearbyPOIs: pois,
       owner: {
         id: `owner-${Date.now()}`,
@@ -340,7 +342,6 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                     type="button"
                     onClick={() => {
                       setRentalType('pg_hostel');
-                      setPriceINR(8500);
                       setCategory('pg_hostel');
                     }}
                     className={`p-3 rounded-2xl border text-left transition-all ${
@@ -361,7 +362,6 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                     type="button"
                     onClick={() => {
                       setRentalType('monthly_room');
-                      setPriceINR(20000);
                       setCategory('monthly_room');
                     }}
                     className={`p-3 rounded-2xl border text-left transition-all ${
@@ -382,7 +382,6 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                     type="button"
                     onClick={() => {
                       setRentalType('daily_rental');
-                      setPriceINR(3500);
                       setCategory('daily_rental');
                     }}
                     className={`p-3 rounded-2xl border text-left transition-all ${
@@ -506,45 +505,117 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
             <div className="flex flex-col gap-5">
               
               {/* Rent & Deposit Inputs in INR */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-bold text-gray-700">
-                    Rent in Rupees (₹) {rentalType === 'daily_rental' ? '/ Night' : '/ Month'} *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500">₹</span>
-                    <input
-                      type="number"
-                      required
-                      min={500}
-                      value={priceINR}
-                      onChange={(e) => setPriceINR(Number(e.target.value))}
-                      className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-gray-200 outline-hidden focus:border-rose-500 text-sm font-black text-rose-600"
-                    />
-                  </div>
-                </div>
-
-                {rentalType !== 'daily_rental' && (
+              <div className="p-4 rounded-2xl bg-rose-50/50 border border-rose-200/80 space-y-3">
+                <h4 className="text-xs font-black text-rose-950 uppercase tracking-wider flex items-center justify-between">
+                  <span>Set Listing Price & Deposit *</span>
+                  <span className="text-[10px] text-rose-700 bg-rose-100 px-2 py-0.5 rounded font-bold">
+                    {rentalType === 'daily_rental' ? 'Daily Rate' : 'Monthly Rate'}
+                  </span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-gray-700">Security Deposit (₹)</label>
+                    <label className="text-xs font-bold text-gray-800">
+                      Rent Rate (₹) {rentalType === 'daily_rental' ? '/ Night' : '/ Month'} *
+                    </label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500">₹</span>
                       <input
                         type="number"
-                        min={0}
-                        value={securityDepositINR}
-                        onChange={(e) => setSecurityDepositINR(Number(e.target.value))}
-                        className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-gray-200 outline-hidden focus:border-rose-500 text-sm font-bold"
+                        required
+                        min={100}
+                        placeholder={rentalType === 'daily_rental' ? 'e.g. 2500' : 'e.g. 12000'}
+                        value={priceINR || ''}
+                        onChange={(e) => setPriceINR(Number(e.target.value))}
+                        className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-gray-200 outline-hidden focus:border-rose-500 text-sm font-black text-rose-600 bg-white"
                       />
                     </div>
                   </div>
-                )}
+
+                  {rentalType !== 'daily_rental' && (
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-gray-800">Security Deposit (₹)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-500">₹</span>
+                        <input
+                          type="number"
+                          min={0}
+                          placeholder="e.g. 10000 (0 for No Deposit)"
+                          value={securityDepositINR || ''}
+                          onChange={(e) => setSecurityDepositINR(Number(e.target.value))}
+                          className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-gray-200 outline-hidden focus:border-rose-500 text-sm font-bold bg-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Property Capacity & Layout Specs */}
+              <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-3">
+                <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">Property Details & Capacity</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-1">Bedrooms</label>
+                    <select
+                      value={bedrooms}
+                      onChange={(e) => setBedrooms(Number(e.target.value))}
+                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                    >
+                      <option value={1}>1 Bedroom / Room</option>
+                      <option value={2}>2 Bedrooms (2BHK)</option>
+                      <option value={3}>3 Bedrooms (3BHK)</option>
+                      <option value={4}>4+ Bedrooms</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-1">Beds</label>
+                    <select
+                      value={beds}
+                      onChange={(e) => setBeds(Number(e.target.value))}
+                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                    >
+                      <option value={1}>1 Bed</option>
+                      <option value={2}>2 Beds</option>
+                      <option value={3}>3 Beds</option>
+                      <option value={4}>4+ Beds</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-1">Bathrooms</label>
+                    <select
+                      value={bathrooms}
+                      onChange={(e) => setBathrooms(Number(e.target.value))}
+                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                    >
+                      <option value={1}>1 Bathroom</option>
+                      <option value={2}>2 Bathrooms</option>
+                      <option value={3}>3+ Bathrooms</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-gray-700 block mb-1">Max Guests</label>
+                    <select
+                      value={maxGuests}
+                      onChange={(e) => setMaxGuests(Number(e.target.value))}
+                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                    >
+                      <option value={1}>1 Guest / Tenant</option>
+                      <option value={2}>2 Guests</option>
+                      <option value={3}>3 Guests</option>
+                      <option value={4}>4 Guests</option>
+                      <option value={6}>6+ Guests</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               {/* PG Specific options */}
               {rentalType === 'pg_hostel' && (
                 <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-3">
-                  <h4 className="text-xs font-black text-blue-900 uppercase tracking-wider">PG Hostel Features</h4>
+                  <h4 className="text-xs font-black text-blue-900 uppercase tracking-wider">PG Hostel Specific Options</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                     <div>
                       <label className="font-bold text-gray-700 block mb-1">PG Type</label>
@@ -574,7 +645,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="font-bold text-gray-700 block mb-1">Meals Provided?</label>
+                      <label className="font-bold text-gray-700 block mb-1">Meals Included?</label>
                       <select
                         value={pgFoodIncluded ? 'yes' : 'no'}
                         onChange={(e) => setPgFoodIncluded(e.target.value === 'yes')}
@@ -601,8 +672,30 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
               )}
 
               {/* Amenities Selection */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-gray-700">Select Amenities</label>
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-800">
+                    Select Available Amenities ({selectedAmenities.length} selected)
+                  </label>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAmenities(ALL_AMENITIES.map((a) => a.id))}
+                      className="text-rose-600 font-bold hover:underline"
+                    >
+                      Select All
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAmenities([])}
+                      className="text-gray-500 font-bold hover:underline"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {ALL_AMENITIES.map((amenity) => {
                     const isSelected = selectedAmenities.includes(amenity.id);
@@ -611,14 +704,14 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                         key={amenity.id}
                         type="button"
                         onClick={() => toggleAmenity(amenity.id)}
-                        className={`p-2 rounded-xl border text-xs font-medium transition-all text-left flex items-center justify-between ${
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all text-left flex items-center justify-between ${
                           isSelected
-                            ? 'bg-rose-50 text-rose-700 border-rose-300 font-bold'
-                            : 'bg-white text-gray-600 border-gray-200'
+                            ? 'bg-rose-50 text-rose-700 border-rose-300 font-bold shadow-2xs'
+                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                         }`}
                       >
                         <span>{amenity.name}</span>
-                        {isSelected && <Check className="w-3.5 h-3.5 text-rose-500" />}
+                        {isSelected && <Check className="w-4 h-4 text-rose-500 shrink-0" />}
                       </button>
                     );
                   })}
@@ -814,7 +907,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Enter coupon code (e.g. 5436)"
+                    placeholder="Enter premium coupon code"
                     value={couponCode}
                     onChange={(e) => {
                       const code = e.target.value;
@@ -837,7 +930,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                 {isValidPremiumCoupon(couponCode) ? (
                   <div className="p-2.5 rounded-xl bg-emerald-100/90 border border-emerald-300 text-xs font-bold text-emerald-900 flex items-center gap-2 animate-fadeIn">
                     <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span>✓ Valid Premium Pass Code (5436)! Unlimited listings & lifetime duration activated with Verified badge.</span>
+                    <span>✓ Premium Pass Activated! Unlimited listings & lifetime duration activated with Verified badge.</span>
                   </div>
                 ) : (
                   <p className="text-[11px] text-amber-800 leading-snug">

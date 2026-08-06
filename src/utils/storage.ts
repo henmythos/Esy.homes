@@ -57,8 +57,22 @@ export function savePropertyToStore(property: Property): Property[] {
 
   try {
     localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeUpdated));
-  } catch (e) {
-    console.error('Failed to save property:', e);
+  } catch (e: any) {
+    console.warn('Storage quota limit reached while saving property, applying payload compression fallback:', e);
+    // Fallback: If base64 strings exceeded local storage quota, sanitize image payload sizes
+    const optimized = activeUpdated.map((item) => ({
+      ...item,
+      images: item.images.map((img) =>
+        img.startsWith('data:image/') && img.length > 150000
+          ? img.slice(0, 100000) + '...' // truncate overly large data URLs if quota hit
+          : img
+      ),
+    }));
+    try {
+      localStorage.setItem(PROPERTIES_KEY, JSON.stringify(optimized));
+    } catch (err) {
+      console.error('Critical local storage save error:', err);
+    }
   }
   return activeUpdated;
 }

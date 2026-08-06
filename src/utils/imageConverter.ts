@@ -28,8 +28,8 @@ export interface WebpConversionResult {
  */
 export async function convertToWebP(
   file: File,
-  quality: number = 0.85,
-  maxDimension: number = 1920
+  quality: number = 0.80,
+  maxDimension: number = 1200
 ): Promise<WebpConversionResult> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -138,12 +138,11 @@ export async function uploadWebPToR2(
     console.warn('Direct R2 PUT fetch fallback to client WebP Data URL:', err);
   }
 
-  // Fallback: Return the target public R2 URL or WebP DataURL if CORS limits direct PUT in dev
+  // Fallback: Always return WebP DataURL when direct R2 storage fetch isn't CORS enabled in dev
   if (onProgress) onProgress(100);
   
-  // Use public R2 URL or DataURL depending on browser context
   return {
-    r2Url: targetR2PublicUrl.startsWith('http') ? targetR2PublicUrl : webpResult.dataUrl,
+    r2Url: webpResult.dataUrl,
     webpResult,
   };
 }
