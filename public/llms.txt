@@ -1,6 +1,6 @@
-# esy.homes - India's Zero Brokerage PG, Room & Homestay Rental Discovery Engine
+# ezy.homes - India's Zero Brokerage PG, Room & Homestay Rental Discovery Engine
 
-> esy.homes is a rental marketplace platform for finding verified PGs (Paying Guest Hostels), monthly flats/rooms, and daily homestays across major Indian tech hubs and cities.
+> ezy.homes is a rental marketplace platform for finding verified PGs (Paying Guest Hostels), monthly flats/rooms, and daily homestays across major Indian tech hubs and cities.
 
 ## Key Features & Value Proposition
 - Zero Brokerage Fees & Direct Owner Contact via Instant Call / WhatsApp.
@@ -22,5 +22,5 @@
 - Direct Owner Instant Call availability
 
 ## Contact & Platform Info
-- Platform: https://esy.homes
+- Platform: https://www.ezy.homes
 - Domain Focus: Real Estate, Rental Accommodation, PG Finder India

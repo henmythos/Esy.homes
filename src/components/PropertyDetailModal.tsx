@@ -48,6 +48,33 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [guestsCount, setGuestsCount] = useState<number>(2);
   const [customMessage, setCustomMessage] = useState<string>('');
   const [isCopied, setIsCopied] = useState(false);
+  const [isCopiedLink, setIsCopiedLink] = useState(false);
+
+  const propertyShareUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/?property=${property.id}`
+    : `https://www.ezy.homes/?property=${property.id}`;
+
+  const handleShareListing = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${property.title} | ezy.homes`,
+          text: `Check out ${property.title} in ${property.location.neighborhood}, ${property.location.city} on ezy.homes`,
+          url: propertyShareUrl,
+        });
+      } catch (e) {
+        handleCopyShareLink();
+      }
+    } else {
+      handleCopyShareLink();
+    }
+  };
+
+  const handleCopyShareLink = () => {
+    navigator.clipboard.writeText(propertyShareUrl);
+    setIsCopiedLink(true);
+    setTimeout(() => setIsCopiedLink(false), 2500);
+  };
 
   // Date calculation
   const calculateNights = () => {
@@ -85,12 +112,20 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-black uppercase tracking-wider text-rose-500 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">
-              esy.homes Verified Listing
+              ezy.homes free Listing
             </span>
             <span className="text-xs text-gray-400 hidden sm:inline">• Direct Owner Booking</span>
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleShareListing}
+              className="px-3 py-1.5 rounded-full hover:bg-gray-100 text-gray-700 transition-colors flex items-center gap-1.5 text-xs font-bold border border-gray-200"
+              title="Share Property Link"
+            >
+              <Share2 className="w-4 h-4 text-rose-500" />
+              <span>{isCopiedLink ? 'Copied!' : 'Share'}</span>
+            </button>
             <button
               onClick={() => onToggleWishlist(property.id)}
               className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors"
@@ -248,6 +283,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   nearbyPOIs={property.nearbyPOIs}
                 />
               </div>
+
+
 
               {/* House Rules */}
               <div className="flex flex-col gap-2 p-4 rounded-2xl bg-gray-50 border border-gray-100">

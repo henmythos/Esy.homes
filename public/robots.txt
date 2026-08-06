@@ -25,4 +25,4 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://esy.homes/sitemap.xml
+Sitemap: https://www.ezy.homes/sitemap.xml

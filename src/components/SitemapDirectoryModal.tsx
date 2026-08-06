@@ -192,7 +192,7 @@ export const SitemapDirectoryModal: React.FC<SitemapDirectoryModalProps> = ({
                 <Globe className="w-3.5 h-3.5 text-rose-500" /> SEO Structured Index URL:
               </div>
               <div className="font-mono text-[10px] text-gray-600 bg-white p-1.5 rounded border border-gray-200">
-                https://esy.homes/india/{currentCityObj.name.toLowerCase().replace(/\s+/g, '-')}/rentals
+                https://www.ezy.homes/india/{currentCityObj.name.toLowerCase().replace(/\s+/g, '-')}/rentals
               </div>
             </div>
 

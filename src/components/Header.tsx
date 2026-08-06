@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center cursor-pointer shrink-0" onClick={() => onFilterChange({ ...filters, destination: '', category: 'all', city: '' })}>
             <div className="flex flex-col">
               <span className="text-xl sm:text-2xl font-black tracking-tight text-gray-900 leading-none">
-                esy<span className="text-rose-500">.homes</span>
+                ezy<span className="text-rose-500">.homes</span>
               </span>
               <span className="text-[10px] font-semibold tracking-wider text-rose-500/80 uppercase mt-0.5 hidden sm:inline-block">
                 Direct Indian Rental Platform

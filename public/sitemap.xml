@@ -4,78 +4,78 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
-    <loc>https://esy.homes/</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   
   <!-- Major Tech & Metros Rental Cities in India -->
   <url>
-    <loc>https://esy.homes/bengaluru</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/bengaluru</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://esy.homes/mumbai</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/mumbai</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://esy.homes/hyderabad</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/hyderabad</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://esy.homes/delhi-ncr</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/delhi-ncr</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://esy.homes/pune</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/pune</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://esy.homes/goa</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/goa</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- High Intent Rental Categories -->
   <url>
-    <loc>https://esy.homes/pg-hostel</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/pg-hostel</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://esy.homes/mens-pg</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/mens-pg</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://esy.homes/womens-pg</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/womens-pg</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://esy.homes/monthly-rooms</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/monthly-rooms</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://esy.homes/daily-homestays</loc>
-    <lastmod>2026-07-27</lastmod>
+    <loc>https://www.ezy.homes/daily-homestays</loc>
+    <lastmod>2026-08-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>

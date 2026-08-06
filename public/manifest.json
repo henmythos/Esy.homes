@@ -1,0 +1,42 @@
+{
+  "name": "ezy.homes | Zero Brokerage PG & Room Rentals",
+  "short_name": "ezy.homes",
+  "description": "Discover verified PGs, monthly rooms & homestays with direct owner contact and zero brokerage across India.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f43f5e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["travel", "housing", "lifestyle", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Search PGs in Bengaluru",
+      "url": "/?destination=Bengaluru",
+      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Host Your Property",
+      "url": "/?action=host",
+      "icons": [{ "src": "/favicon.svg", "sizes": "192x192" }]
+    }
+  ]
+}

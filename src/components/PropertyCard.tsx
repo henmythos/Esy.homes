@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Currency, Property } from '../types';
 import { formatRentalRate } from '../utils/currencies';
-import { Star, Heart, ChevronLeft, ChevronRight, PhoneCall, ShieldCheck, MapPin, Users, Calendar, Building, Zap } from 'lucide-react';
+import { Star, Heart, Share2, ChevronLeft, ChevronRight, PhoneCall, ShieldCheck, MapPin, Users, Calendar, Building, Zap } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
@@ -19,6 +19,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onClick,
 }) => {
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
+  const [isCopied, setIsCopied] = useState(false);
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -28,6 +29,26 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentImageIdx((prev) => (prev - 1 + property.images.length) % property.images.length);
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/?property=${property.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `${property.title} | ezy.homes`,
+        text: `Check out ${property.title} in ${property.location.neighborhood}, ${property.location.city} on ezy.homes`,
+        url: shareUrl,
+      }).catch(() => {
+        navigator.clipboard.writeText(shareUrl);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   };
 
   const getRentalTypeBadge = () => {
@@ -58,7 +79,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   return (
     <div
       onClick={() => onClick(property)}
-      className="group cursor-pointer flex flex-col gap-2.5 rounded-2xl p-2.5 transition-all hover:bg-gray-50/90 border border-gray-100 hover:border-gray-200 hover:shadow-md bg-white"
+      className="group cursor-pointer flex flex-col gap-2.5 rounded-2xl p-2.5 transition-all hover:bg-gray-50/90 border border-gray-100 hover:border-gray-200 hover:shadow-md bg-white overflow-hidden no-scrollbar"
     >
       {/* Image Container with Slider */}
       <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-gray-100 shadow-2xs">
@@ -72,24 +93,38 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 opacity-70" />
 
-        {/* Wishlist Heart Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleWishlist(property.id);
-          }}
-          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-xs transition-transform active:scale-90 text-white shadow-sm"
-          title={isWishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
-        >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-white stroke-[2.5]'
-            }`}
-          />
-        </button>
+        {/* Action Buttons Top Right: Share + Wishlist */}
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+          <button
+            onClick={handleShare}
+            className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xs transition-transform active:scale-90 text-white shadow-sm flex items-center gap-1"
+            title="Share Property Link"
+          >
+            <Share2 className="w-4 h-4 text-white stroke-[2.2]" />
+            {isCopied && <span className="text-[10px] font-bold text-emerald-400 pr-1">Copied!</span>}
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWishlist(property.id);
+            }}
+            className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xs transition-transform active:scale-90 text-white shadow-sm"
+            title={isWishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
+          >
+            <Heart
+              className={`w-4 h-4 transition-colors ${
+                isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-white stroke-[2.2]'
+              }`}
+            />
+          </button>
+        </div>
+
 
         {/* Badges Overlay */}
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start">
+          <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-emerald-600 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-emerald-400/30">
+            <ShieldCheck className="w-2.5 h-2.5" /> ezy.homes free Listing
+          </span>
           <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] tracking-wide shadow-xs backdrop-blur-md ${badge.bg}`}>
             {badge.label}
           </span>

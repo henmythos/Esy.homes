@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Property, PointOfInterest, RentalType } from '../types';
 import { INDIAN_CITIES } from '../data/indianCities';
 import { ALL_AMENITIES } from '../data/amenities';
+import { LocationPickerMap } from './LocationPickerMap';
 import { X, Plus, Trash2, Check, Upload, Home, MapPin, Calendar, Phone, MessageSquare, IndianRupee, Users, Building, Sparkles } from 'lucide-react';
 
 interface HostPropertyModalProps {
@@ -67,8 +68,24 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
     );
   };
 
+  const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+    bengaluru: { lat: 12.9352, lng: 77.6245 },
+    mumbai: { lat: 19.0760, lng: 72.8777 },
+    hyderabad: { lat: 17.3850, lng: 78.4867 },
+    'delhi ncr': { lat: 28.6139, lng: 77.2090 },
+    pune: { lat: 18.5204, lng: 73.8567 },
+    goa: { lat: 15.2993, lng: 74.1240 },
+    chennai: { lat: 13.0827, lng: 80.2707 },
+    kolkata: { lat: 22.5726, lng: 88.3639 },
+  };
+
   const handleCitySelect = (selectedCityName: string) => {
     setCity(selectedCityName);
+    const key = selectedCityName.toLowerCase();
+    if (CITY_COORDS[key]) {
+      setLat(CITY_COORDS[key].lat);
+      setLng(CITY_COORDS[key].lng);
+    }
     const matched = INDIAN_CITIES.find(c => c.name.toLowerCase() === selectedCityName.toLowerCase());
     if (matched) {
       setStateName(matched.state);
@@ -330,6 +347,34 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-hidden focus:border-rose-500 text-sm"
+                />
+              </div>
+
+              {/* Accurate Map Location Pinning */}
+              <div className="flex flex-col gap-2 p-3.5 rounded-2xl bg-gray-50 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-gray-900 flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-rose-500" /> Pin Exact Property Location on Map *
+                  </label>
+                  <span className="text-[10px] text-gray-500 font-bold bg-white px-2 py-0.5 rounded-md border border-gray-200">
+                    Lat: {lat.toFixed(5)}, Lng: {lng.toFixed(5)}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500">
+                  Search landmark, click "Use My Live GPS", or drag the red target pin directly to your building entrance.
+                </p>
+
+                <LocationPickerMap
+                  lat={lat}
+                  lng={lng}
+                  cityName={city}
+                  onChangeLocation={(newLat, newLng, newAddress) => {
+                    setLat(newLat);
+                    setLng(newLng);
+                    if (newAddress && !address) {
+                      setAddress(newAddress);
+                    }
+                  }}
                 />
               </div>
 

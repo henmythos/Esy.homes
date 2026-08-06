@@ -20,7 +20,7 @@ export const SelfHostPanel: React.FC<SelfHostPanelProps> = ({
   const [isSaved, setIsSaved] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
 
-  const sqlSchema = `-- esy.homes Turso (libsql) Database Schema
+  const sqlSchema = `-- ezy.homes Turso (libsql) Database Schema
 CREATE TABLE IF NOT EXISTS properties (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,

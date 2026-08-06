@@ -11,6 +11,7 @@ import { SelfHostPanel } from './components/SelfHostPanel';
 import { SitemapDirectoryModal } from './components/SitemapDirectoryModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { SEOStructuredData } from './components/SEOStructuredData';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { parseNaturalLanguageQuery } from './utils/aiQueryParser';
 import { Heart, Search, MapPin, MessageSquare } from 'lucide-react';
 
@@ -61,6 +62,55 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Direct Link Deep Linking (?property=p-1) for Google Maps & shared URLs
+  useEffect(() => {
+    if (properties.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const pid = params.get('property') || params.get('p') || params.get('id');
+      if (pid) {
+        const match = properties.find((p) => p.id === pid || p.slug === pid);
+        if (match) {
+          setSelectedProperty(match);
+        }
+      }
+    }
+  }, [properties]);
+
+  // Listen to browser Back / Forward buttons for modal state
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const pid = params.get('property') || params.get('p') || params.get('id');
+      if (pid && properties.length > 0) {
+        const match = properties.find((p) => p.id === pid || p.slug === pid);
+        setSelectedProperty(match || null);
+      } else {
+        setSelectedProperty(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [properties]);
+
+  // Handle Property Selection with Deep Link URL state sync
+  const handleSelectProperty = (property: Property | null) => {
+    setSelectedProperty(property);
+    
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (property) {
+        url.searchParams.set('property', property.id);
+      } else {
+        url.searchParams.delete('property');
+        url.searchParams.delete('p');
+        url.searchParams.delete('id');
+      }
+      const newUrl = url.pathname + (url.search ? url.search : '');
+      window.history.pushState(property ? { propertyId: property.id } : {}, '', newUrl);
+    }
+  };
+
   // Handle Filter Changes with natural query interpretation and brief non-blocking state
   const handleFilterChange = (newFilters: SearchFilters) => {
     if (newFilters.destination && newFilters.destination !== filters.destination) {
@@ -81,7 +131,7 @@ export default function App() {
   const handleSaveNewProperty = (newProperty: Property) => {
     const updatedList = savePropertyToStore(newProperty);
     setProperties(updatedList);
-    setSelectedProperty(newProperty);
+    handleSelectProperty(newProperty);
   };
 
   // Handle Saving Self-Host Settings
@@ -200,7 +250,7 @@ export default function App() {
                 activeCurrency={activeCurrency}
                 isWishlisted={wishlist.includes(property.id)}
                 onToggleWishlist={handleToggleWishlist}
-                onClick={setSelectedProperty}
+                onClick={handleSelectProperty}
               />
             ))}
           </div>
@@ -298,7 +348,7 @@ export default function App() {
           activeCurrency={activeCurrency}
           isWishlisted={wishlist.includes(selectedProperty.id)}
           onToggleWishlist={handleToggleWishlist}
-          onClose={() => setSelectedProperty(null)}
+          onClose={() => handleSelectProperty(null)}
         />
       )}
 
@@ -328,6 +378,9 @@ export default function App() {
           onClose={() => setIsSelfHostModalOpen(false)}
         />
       )}
+
+      {/* Progressive Web App Install Banner for iOS, Android & Desktop */}
+      <PWAInstallPrompt />
 
     </div>
   );
