@@ -57,6 +57,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [isCopied, setIsCopied] = useState(false);
   const [isCopiedLink, setIsCopiedLink] = useState(false);
 
+  // Swipe handling state
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
   const handlePrevPhoto = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setActivePhotoIdx((prev) => (prev === 0 ? propertyImages.length - 1 : prev - 1));
@@ -65,6 +69,29 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const handleNextPhoto = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setActivePhotoIdx((prev) => (prev === propertyImages.length - 1 ? 0 : prev + 1));
+  };
+
+  // Touch event handlers for swipe
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null); // Reset
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe) {
+      handleNextPhoto();
+    } else if (isRightSwipe) {
+      handlePrevPhoto();
+    }
   };
 
   useEffect(() => {
@@ -210,7 +237,12 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           <div className="flex flex-col gap-3 select-none">
             
             {/* Primary Main Image Showcase */}
-            <div className="relative h-72 sm:h-96 md:h-[420px] w-full rounded-2xl bg-slate-950 overflow-hidden group border border-slate-200/80 shadow-xs">
+            <div 
+              className="relative h-72 sm:h-96 md:h-[420px] w-full rounded-2xl bg-slate-950 overflow-hidden group border border-slate-200/80 shadow-xs"
+              onTouchStart={onTouchStart}
+              onTouchMove={onTouchMove}
+              onTouchEnd={onTouchEnd}
+            >
               <img
                 src={propertyImages[activePhotoIdx] || propertyImages[0]}
                 alt={property.title}
@@ -367,6 +399,15 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                       </div>
                     );
                   })}
+                  {property.customAmenities?.map((customAmenity, idx) => (
+                    <div
+                      key={`custom-${idx}`}
+                      className="flex items-center gap-2.5 p-2.5 rounded-xl bg-rose-50 border border-rose-100 text-xs font-bold text-rose-800 shadow-2xs"
+                    >
+                      <Sparkles className="w-4 h-4 text-rose-500 shrink-0" />
+                      <span>{customAmenity}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -421,17 +462,27 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <div className="sticky top-20 bg-white rounded-3xl p-5 border border-gray-200 shadow-lg flex flex-col gap-5">
                 
                 {/* Price Display */}
-                <div className="flex items-baseline justify-between border-b border-gray-100 pb-3">
-                  <div>
-                    <span className="text-2xl font-black text-gray-900">
-                      {formatPrice(property.pricePerNightUSD, activeCurrency)}
-                    </span>
-                    <span className="text-xs text-gray-500 font-normal"> / night</span>
+                <div className="flex flex-col gap-2 border-b border-gray-100 pb-3">
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <span className="text-2xl font-black text-gray-900">
+                        {formatPrice(property.pricePerNightUSD, activeCurrency)}
+                      </span>
+                      <span className="text-xs text-gray-500 font-normal">
+                        {property.rentalType === 'daily_rental' ? ' / night' : ' / month'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-bold text-gray-900">
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                      <span>{property.rating.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 text-xs font-bold text-gray-900">
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                    <span>{property.rating.toFixed(2)}</span>
-                  </div>
+                  {property.customRentDetails && (
+                    <div className="p-2.5 bg-rose-50/50 rounded-xl border border-rose-100">
+                      <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wide block mb-1">Pricing Details</span>
+                      <p className="text-xs text-gray-700 whitespace-pre-wrap">{property.customRentDetails}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Date Selection Box */}
@@ -612,7 +663,12 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           </div>
 
           {/* Main Full View Stage */}
-          <div className="relative flex-1 my-4 flex items-center justify-center overflow-hidden">
+          <div 
+            className="relative flex-1 my-4 flex items-center justify-center overflow-hidden"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
             <img
               src={propertyImages[activePhotoIdx]}
               alt={`${property.title} Full View ${activePhotoIdx + 1}`}

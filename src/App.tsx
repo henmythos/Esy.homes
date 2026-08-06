@@ -51,17 +51,19 @@ export default function App() {
   // Load Initial Data on Mount with a small preload animation to prevent layout shifts
   useEffect(() => {
     setIsLoading(true);
-    const stored = getStoredProperties();
-    const storedWishlist = getWishlistIds();
-    setProperties(stored);
-    setWishlist(storedWishlist);
-    
-    // Simulate swift initial preload finish
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 400);
-
-    return () => clearTimeout(timer);
+    async function loadData() {
+      const stored = await getStoredProperties();
+      const storedWishlist = getWishlistIds();
+      setProperties(stored);
+      setWishlist(storedWishlist);
+      
+      // Simulate swift initial preload finish
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+    loadData();
   }, []);
 
   // Direct Link Deep Linking (?property=p-1) for Google Maps & shared URLs
@@ -130,15 +132,15 @@ export default function App() {
   };
 
   // Handle Adding New Host Property
-  const handleSaveNewProperty = (newProperty: Property) => {
-    const updatedList = savePropertyToStore(newProperty);
+  const handleSaveNewProperty = async (newProperty: Property) => {
+    const updatedList = await savePropertyToStore(newProperty);
     setProperties(updatedList);
     handleSelectProperty(newProperty);
   };
 
   // Handle Deleting Host Property
-  const handleDeleteProperty = (id: string) => {
-    const updatedList = deletePropertyFromStore(id);
+  const handleDeleteProperty = async (id: string) => {
+    const updatedList = await deletePropertyFromStore(id);
     setProperties(updatedList);
     if (selectedProperty?.id === id) {
       handleSelectProperty(null);

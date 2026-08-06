@@ -68,6 +68,7 @@ export interface Property {
   priceINR: number; // ₹ Price per night or per month depending on rentalType
   pricePerNightUSD: number; // Fallback calculated rate for USD conversion
   securityDepositINR?: number; // Deposit required for monthly or PG rentals
+  customRentDetails?: string; // Flexible pricing details added by the host
   cleaningFeeUSD: number;
   rating: number;
   reviewCount: number;
@@ -78,6 +79,7 @@ export interface Property {
   pgDetails?: PgDetails; // Specific to PG Hostels
   images: string[];
   amenities: string[]; // amenity ids
+  customAmenities?: string[]; // custom string amenities added by the host
   nearbyPOIs: PointOfInterest[];
   owner: OwnerInfo;
   blockedDates: string[]; // YYYY-MM-DD strings

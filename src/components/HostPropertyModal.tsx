@@ -45,6 +45,11 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
   const [pgFoodIncluded, setPgFoodIncluded] = useState<boolean>(true);
   const [pgAcAvailable, setPgAcAvailable] = useState<boolean>(true);
 
+  // Custom details requested by user
+  const [customRentDetails, setCustomRentDetails] = useState<string>('');
+  const [customAmenities, setCustomAmenities] = useState<string[]>([]);
+  const [newCustomAmenity, setNewCustomAmenity] = useState<string>('');
+
   // Owner sets amenities and images (starts empty so owner explicitly chooses)
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -216,6 +221,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
       priceINR: finalPriceINR,
       pricePerNightUSD: priceUSD,
       securityDepositINR: rentalType !== 'daily_rental' ? Number(securityDepositINR) : 0,
+      customRentDetails: customRentDetails.trim() || undefined,
       cleaningFeeUSD: 0,
       rating: 5.0,
       reviewCount: 1,
@@ -236,6 +242,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
         'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80'
       ],
       amenities: selectedAmenities.length > 0 ? selectedAmenities : ['wifi', 'security'],
+      customAmenities: customAmenities.length > 0 ? customAmenities : undefined,
       nearbyPOIs: pois,
       owner: {
         id: `owner-${Date.now()}`,
@@ -548,6 +555,21 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                     </div>
                   )}
                 </div>
+                
+                <div className="flex flex-col gap-1 mt-2">
+                  <label className="text-xs font-bold text-gray-800 flex items-center justify-between">
+                    <span>Flexible Pricing & Rent Details (Optional)</span>
+                    <span className="text-[9px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Custom Details</span>
+                  </label>
+                  <textarea
+                    placeholder="e.g. 1BHK: ₹15,000 | 2BHK: ₹25,000, Water bill extra..."
+                    value={customRentDetails}
+                    onChange={(e) => setCustomRentDetails(e.target.value)}
+                    rows={2}
+                    className="w-full p-2.5 rounded-xl border border-gray-200 outline-hidden focus:border-rose-500 text-sm bg-white resize-none placeholder-gray-400"
+                  />
+                  <p className="text-[10px] text-gray-500">Provide full flexibility if you offer multiple room types or dynamic rent.</p>
+                </div>
               </div>
 
               {/* Property Capacity & Layout Specs */}
@@ -715,6 +737,48 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                       </button>
                     );
                   })}
+                  {customAmenities.map((customAmenity, index) => (
+                    <button
+                      key={`custom-${index}`}
+                      type="button"
+                      onClick={() => setCustomAmenities(prev => prev.filter((_, i) => i !== index))}
+                      className="p-2.5 rounded-xl border text-xs font-medium transition-all text-left flex items-center justify-between bg-rose-50 text-rose-700 border-rose-300 font-bold shadow-2xs"
+                    >
+                      <span>{customAmenity}</span>
+                      <Check className="w-4 h-4 text-rose-500 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="text"
+                    placeholder="Add custom amenity (e.g. Fiber Internet)"
+                    value={newCustomAmenity}
+                    onChange={(e) => setNewCustomAmenity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (newCustomAmenity.trim() && !customAmenities.includes(newCustomAmenity.trim())) {
+                          setCustomAmenities([...customAmenities, newCustomAmenity.trim()]);
+                          setNewCustomAmenity('');
+                        }
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 text-xs rounded-lg border border-gray-200 outline-hidden focus:border-rose-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newCustomAmenity.trim() && !customAmenities.includes(newCustomAmenity.trim())) {
+                        setCustomAmenities([...customAmenities, newCustomAmenity.trim()]);
+                        setNewCustomAmenity('');
+                      }
+                    }}
+                    className="px-3 py-2 text-xs font-bold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                  >
+                    Add
+                  </button>
                 </div>
               </div>
 

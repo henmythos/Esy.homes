@@ -17,7 +17,20 @@ export const DEFAULT_SELF_HOST_CONFIG: SelfHostConfig = {
   isConfigured: true,
 };
 
-export function getStoredProperties(): Property[] {
+export async function getStoredProperties(): Promise<Property[]> {
+  try {
+    const res = await fetch('/api/properties');
+    if (res.ok) {
+      const properties = await res.json();
+      if (properties && properties.length > 0) {
+        return filterActiveProperties(properties);
+      }
+    }
+  } catch (e) {
+    console.error('Failed to fetch from Turso API, falling back to local/initial:', e);
+  }
+  
+  // Fallback to localStorage logic if server fails
   try {
     const raw = localStorage.getItem(PROPERTIES_KEY);
     if (!raw) {
@@ -41,8 +54,22 @@ export function getStoredProperties(): Property[] {
   }
 }
 
-export function savePropertyToStore(property: Property): Property[] {
-  const current = getStoredProperties();
+export async function savePropertyToStore(property: Property): Promise<Property[]> {
+  try {
+    const res = await fetch('/api/properties', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(property)
+    });
+    if (!res.ok) {
+      console.warn('Failed to save to Turso API, will fallback to local storage');
+    }
+  } catch (e) {
+    console.error('API save error:', e);
+  }
+
+  // Still update local storage for fast local caching if wanted, or we just rely on API.
+  const current = await getStoredProperties();
   const existingIdx = current.findIndex((p) => p.id === property.id);
   let updated: Property[];
   
@@ -54,7 +81,6 @@ export function savePropertyToStore(property: Property): Property[] {
   }
   
   const activeUpdated = filterActiveProperties(updated);
-
   try {
     localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeUpdated));
   } catch (e: any) {
@@ -77,8 +103,14 @@ export function savePropertyToStore(property: Property): Property[] {
   return activeUpdated;
 }
 
-export function deletePropertyFromStore(id: string): Property[] {
-  const current = getStoredProperties();
+export async function deletePropertyFromStore(id: string): Promise<Property[]> {
+  try {
+    await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    console.error('API delete error:', e);
+  }
+
+  const current = await getStoredProperties();
   const updated = current.filter((p) => p.id !== id);
   try {
     localStorage.setItem(PROPERTIES_KEY, JSON.stringify(updated));

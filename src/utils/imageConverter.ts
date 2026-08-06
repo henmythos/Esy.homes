@@ -112,14 +112,38 @@ export async function uploadWebPToR2(
   file: File,
   onProgress?: (percent: number) => void
 ): Promise<{ r2Url: string; webpResult: WebpConversionResult }> {
-  // Step 1: Convert image to WebP client-side
   if (onProgress) onProgress(20);
   const webpResult = await convertToWebP(file, 0.85, 1920);
+  
   if (onProgress) onProgress(60);
-
   const targetR2PublicUrl = `${R2_CONFIG.publicDevUrl}/${webpResult.fileName}`;
+  
+  // Try to get a presigned URL from the backend
+  try {
+    const presignRes = await fetch(`/api/upload-url?fileName=${encodeURIComponent(webpResult.fileName)}&contentType=image/webp`);
+    if (presignRes.ok) {
+      const { uploadUrl } = await presignRes.json();
+      
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'image/webp',
+        },
+        body: webpResult.blob,
+      });
 
-  // Attempt direct PUT upload to R2 endpoint
+      if (response.ok) {
+        if (onProgress) onProgress(100);
+        return { r2Url: targetR2PublicUrl, webpResult };
+      }
+    } else {
+      console.warn("Backend didn't provide a presigned URL, likely missing credentials.");
+    }
+  } catch (err) {
+    console.warn('Presigned URL fetch failed:', err);
+  }
+
+  // Fallback: Attempt direct PUT upload to R2 endpoint (if bucket is public-write)
   try {
     const uploadUrl = `${R2_CONFIG.endpoint}/${webpResult.fileName}`;
     const response = await fetch(uploadUrl, {
@@ -129,7 +153,7 @@ export async function uploadWebPToR2(
       },
       body: webpResult.blob,
     });
-
+    
     if (response.ok) {
       if (onProgress) onProgress(100);
       return { r2Url: targetR2PublicUrl, webpResult };
@@ -138,7 +162,7 @@ export async function uploadWebPToR2(
     console.warn('Direct R2 PUT fetch fallback to client WebP Data URL:', err);
   }
 
-  // Fallback: Always return WebP DataURL when direct R2 storage fetch isn't CORS enabled in dev
+  // Final Fallback: Always return WebP DataURL when R2 fails
   if (onProgress) onProgress(100);
   
   return {
