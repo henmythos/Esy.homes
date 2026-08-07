@@ -400,6 +400,7 @@ export default function App() {
         <MyListingsModal
           properties={properties}
           onDeleteProperty={handleDeleteProperty}
+          onSaveProperty={handleSaveNewProperty}
           onOpenHostModal={() => setIsHostModalOpen(true)}
           onClose={() => setIsMyListingsModalOpen(false)}
         />

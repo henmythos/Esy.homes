@@ -103,6 +103,11 @@ export const PREMIUM_WHATSAPP_NUMBER = '916281256601';
 export const PREMIUM_WHATSAPP_MESSAGE = 'hey i want to list premium property on ezy.homes';
 export const PREMIUM_WHATSAPP_URL = `https://wa.me/${PREMIUM_WHATSAPP_NUMBER}?text=${encodeURIComponent(PREMIUM_WHATSAPP_MESSAGE)}`;
 
+export function getUpgradePropertyWhatsAppUrl(propertyTitle: string, propertyId: string): string {
+  const msg = `hey i want to upgrade my property listing "${propertyTitle}" (ID: ${propertyId}) to premium on ezy.homes`;
+  return `https://wa.me/${PREMIUM_WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+
 /**
  * Formats property creation time into user-friendly relative time (e.g., "1 day ago", "2 months ago").
  */

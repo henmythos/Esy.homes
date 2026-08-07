@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Currency, Property } from '../types';
 import { formatPrice } from '../utils/currencies';
 import { ALL_AMENITIES } from '../data/amenities';
-import { getTimeAgo } from '../utils/expiration';
+import { getTimeAgo, getUpgradePropertyWhatsAppUrl } from '../utils/expiration';
 import { OpenStreetMap } from './OpenStreetMap';
 import { 
   X, Star, Heart, MapPin, Calendar, Users, Phone, MessageSquare, 
@@ -621,6 +621,27 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <p className="text-[10px] text-gray-400 text-center leading-tight">
                   No payment gateway required • Direct communication with property owner
                 </p>
+
+                {/* DIRECT PREMIUM UPGRADE CTA FOR HOSTS */}
+                {!property.isPremium && (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-amber-950 text-white border border-amber-500/30 flex flex-col gap-2 mt-2 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-400 shrink-0 fill-current" />
+                      <span className="text-xs font-black text-amber-200">Are you the owner of this listing?</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-snug">
+                      Upgrade to <strong className="text-white">★ Premium Verified</strong> for featured top placement & 5x more tenant calls.
+                    </p>
+                    <a
+                      href={getUpgradePropertyWhatsAppUrl(property.title, property.id)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-transform active:scale-95"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 fill-current text-amber-200" /> Upgrade on WhatsApp
+                    </a>
+                  </div>
+                )}
 
               </div>
             </div>

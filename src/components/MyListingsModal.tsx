@@ -6,13 +6,16 @@ import {
   getListingDurationDays,
   PREMIUM_WHATSAPP_URL,
   PREMIUM_WHATSAPP_NUMBER,
-  normalizePhoneNumber
+  normalizePhoneNumber,
+  isValidPremiumCoupon,
+  getUpgradePropertyWhatsAppUrl
 } from '../utils/expiration';
 import { X, Phone, Trash2, Building2, ExternalLink, Calendar, CheckCircle2, AlertCircle, Plus, Sparkles, MapPin } from 'lucide-react';
 
 interface MyListingsModalProps {
   properties: Property[];
   onDeleteProperty: (id: string) => void;
+  onSaveProperty?: (property: Property) => void;
   onOpenHostModal: () => void;
   onClose: () => void;
 }
@@ -20,6 +23,7 @@ interface MyListingsModalProps {
 export const MyListingsModal: React.FC<MyListingsModalProps> = ({
   properties,
   onDeleteProperty,
+  onSaveProperty,
   onOpenHostModal,
   onClose,
 }) => {
@@ -27,6 +31,11 @@ export const MyListingsModal: React.FC<MyListingsModalProps> = ({
   const [searchedNumber, setSearchedNumber] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleteSuccessMsg, setDeleteSuccessMsg] = useState('');
+
+  // Premium Code Activation State per property
+  const [activeCodeId, setActiveCodeId] = useState<string | null>(null);
+  const [inputCouponCode, setInputCouponCode] = useState('');
+  const [couponMsg, setCouponMsg] = useState<{ id: string; text: string; success: boolean } | null>(null);
 
   const activeListings = searchedNumber
     ? getUserActiveListings(properties, searchedNumber)
@@ -38,6 +47,7 @@ export const MyListingsModal: React.FC<MyListingsModalProps> = ({
     setSearchedNumber(phoneNumber.trim());
     setConfirmDeleteId(null);
     setDeleteSuccessMsg('');
+    setCouponMsg(null);
   };
 
   const handleDelete = (id: string) => {
@@ -45,6 +55,26 @@ export const MyListingsModal: React.FC<MyListingsModalProps> = ({
     setConfirmDeleteId(null);
     setDeleteSuccessMsg('Listing successfully deleted from site, database and storage.');
     setTimeout(() => setDeleteSuccessMsg(''), 4000);
+  };
+
+  const handleActivateCoupon = (prop: Property) => {
+    if (!isValidPremiumCoupon(inputCouponCode)) {
+      setCouponMsg({ id: prop.id, text: 'Invalid coupon code. Try again or upgrade via WhatsApp.', success: false });
+      return;
+    }
+
+    const updatedProp: Property = {
+      ...prop,
+      isPremium: true,
+      isVerified: true,
+    };
+
+    if (onSaveProperty) {
+      onSaveProperty(updatedProp);
+    }
+    setCouponMsg({ id: prop.id, text: '✓ Premium Verified Activated! Unlimited lifetime duration & verified badge enabled.', success: true });
+    setInputCouponCode('');
+    setActiveCodeId(null);
   };
 
   return (
@@ -194,8 +224,55 @@ export const MyListingsModal: React.FC<MyListingsModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Delete trigger */}
-                        <div className="sm:ml-auto w-full sm:w-auto flex justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        {/* Action Triggers: Upgrade to Premium + Delete */}
+                        <div className="sm:ml-auto w-full sm:w-auto flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                          {!prop.isPremium && (
+                            <div className="flex flex-col gap-1 w-full sm:w-auto">
+                              <div className="flex items-center gap-1.5">
+                                <a
+                                  href={getUpgradePropertyWhatsAppUrl(prop.title, prop.id)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-extrabold text-xs flex items-center gap-1 shadow-xs transition-transform active:scale-95"
+                                  title="Request Premium Verified Upgrade on WhatsApp"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5 fill-current text-amber-200" /> Upgrade on WhatsApp
+                                </a>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveCodeId(activeCodeId === prop.id ? null : prop.id);
+                                    setInputCouponCode('');
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs"
+                                >
+                                  Enter Code
+                                </button>
+                              </div>
+
+                              {/* Coupon Code Inline Input */}
+                              {activeCodeId === prop.id && (
+                                <div className="mt-1.5 p-2 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-1.5 animate-fadeIn">
+                                  <input
+                                    type="text"
+                                    placeholder="Enter coupon code"
+                                    value={inputCouponCode}
+                                    onChange={(e) => setInputCouponCode(e.target.value)}
+                                    className="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-xs font-bold outline-hidden w-36"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleActivateCoupon(prop)}
+                                    className="px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-black text-xs"
+                                  >
+                                    Activate
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           {confirmDeleteId === prop.id ? (
                             <div className="flex items-center gap-1.5">
                               <button
