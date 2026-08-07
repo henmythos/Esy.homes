@@ -226,14 +226,14 @@ export const MyListingsModal: React.FC<MyListingsModalProps> = ({
                 </div>
               )}
 
-              {/* Notice regarding 1 free listing rule & Premium contact */}
+              {/* Host Support & WhatsApp banner */}
               {activeListings.length >= 1 && (
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-amber-900">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-amber-600 shrink-0" />
+                    <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
                     <div>
-                      <p className="font-extrabold text-amber-950">Reached 1 Free Listing Limit</p>
-                      <p className="text-[11px] text-amber-800">You currently have 1 active free listing. Want to post more properties?</p>
+                      <p className="font-extrabold text-white">Need Host Assistance or Instant Verification?</p>
+                      <p className="text-[11px] text-slate-300">Contact our support team on WhatsApp for instant assistance.</p>
                     </div>
                   </div>
                   <a

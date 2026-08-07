@@ -96,14 +96,7 @@ export function hasReachedFreeListingLimit(
   editingPropertyId?: string,
   isPremiumCoupon?: boolean
 ): boolean {
-  if (isPremiumCoupon) return false; // Premium coupon bypasses free listing limits!
-
-  const activeListings = getUserActiveListings(properties, phone);
-  if (editingPropertyId) {
-    const existing = activeListings.filter((p) => p.id !== editingPropertyId);
-    return existing.length >= 1;
-  }
-  return activeListings.length >= 1;
+  return false; // Unlimited free listings on ezy.homes
 }
 
 export const PREMIUM_WHATSAPP_NUMBER = '916281256601';

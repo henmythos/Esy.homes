@@ -22,36 +22,14 @@ export async function getStoredProperties(): Promise<Property[]> {
     const res = await fetch('/api/properties');
     if (res.ok) {
       const properties = await res.json();
-      if (properties && properties.length > 0) {
+      if (Array.isArray(properties)) {
         return filterActiveProperties(properties);
       }
     }
   } catch (e) {
-    console.error('Failed to fetch from Turso API, falling back to local/initial:', e);
+    console.error('Failed to fetch properties from live database:', e);
   }
-  
-  // Fallback to localStorage logic if server fails
-  try {
-    const raw = localStorage.getItem(PROPERTIES_KEY);
-    if (!raw) {
-      const activeInitial = filterActiveProperties(INITIAL_PROPERTIES);
-      localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeInitial));
-      return activeInitial;
-    }
-    const parsed = JSON.parse(raw);
-    const list = Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_PROPERTIES;
-    const activeOnly = filterActiveProperties(list);
-    
-    // Save back if any expired listings were purged
-    if (activeOnly.length !== list.length) {
-      localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeOnly));
-    }
-    
-    return activeOnly;
-  } catch (e) {
-    console.error('Failed to parse stored properties:', e);
-    return filterActiveProperties(INITIAL_PROPERTIES);
-  }
+  return filterActiveProperties(INITIAL_PROPERTIES);
 }
 
 export async function savePropertyToStore(property: Property): Promise<Property[]> {
@@ -62,62 +40,26 @@ export async function savePropertyToStore(property: Property): Promise<Property[
       body: JSON.stringify(property)
     });
     if (!res.ok) {
-      console.warn('Failed to save to Turso API, will fallback to local storage');
+      console.error('Failed to save property to server database:', res.statusText);
     }
   } catch (e) {
     console.error('API save error:', e);
   }
 
-  // Still update local storage for fast local caching if wanted, or we just rely on API.
-  const current = await getStoredProperties();
-  const existingIdx = current.findIndex((p) => p.id === property.id);
-  let updated: Property[];
-  
-  if (existingIdx >= 0) {
-    updated = [...current];
-    updated[existingIdx] = property;
-  } else {
-    updated = [property, ...current];
-  }
-  
-  const activeUpdated = filterActiveProperties(updated);
-  try {
-    localStorage.setItem(PROPERTIES_KEY, JSON.stringify(activeUpdated));
-  } catch (e: any) {
-    console.warn('Storage quota limit reached while saving property, applying payload compression fallback:', e);
-    // Fallback: If base64 strings exceeded local storage quota, sanitize image payload sizes
-    const optimized = activeUpdated.map((item) => ({
-      ...item,
-      images: item.images.map((img) =>
-        img.startsWith('data:image/') && img.length > 150000
-          ? img.slice(0, 100000) + '...' // truncate overly large data URLs if quota hit
-          : img
-      ),
-    }));
-    try {
-      localStorage.setItem(PROPERTIES_KEY, JSON.stringify(optimized));
-    } catch (err) {
-      console.error('Critical local storage save error:', err);
-    }
-  }
-  return activeUpdated;
+  return await getStoredProperties();
 }
 
 export async function deletePropertyFromStore(id: string): Promise<Property[]> {
   try {
-    await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      console.error('Failed to delete property from server database:', res.statusText);
+    }
   } catch (e) {
     console.error('API delete error:', e);
   }
 
-  const current = await getStoredProperties();
-  const updated = current.filter((p) => p.id !== id);
-  try {
-    localStorage.setItem(PROPERTIES_KEY, JSON.stringify(updated));
-  } catch (e) {
-    console.error('Failed to delete property:', e);
-  }
-  return updated;
+  return await getStoredProperties();
 }
 
 export function getWishlistIds(): string[] {

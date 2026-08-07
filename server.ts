@@ -5,6 +5,7 @@ import { createClient } from "@libsql/client";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
+import { INITIAL_PROPERTIES } from "./src/data/mockProperties";
 
 dotenv.config();
 
@@ -72,6 +73,49 @@ async function initDb() {
       data_json TEXT
     )
   `);
+
+  try {
+    const countRes = await db.execute("SELECT COUNT(*) as count FROM properties");
+    const count = Number(countRes.rows[0]?.count || 0);
+    if (count === 0) {
+      console.log("Seeding Turso database with initial properties...");
+      for (const property of INITIAL_PROPERTIES) {
+        await db.execute({
+          sql: `INSERT INTO properties (
+            id, title, slug, description, category, city, country, address,
+            latitude, longitude, price_per_night_usd, cleaning_fee_usd, max_guests,
+            bedrooms, bathrooms, owner_whatsapp, owner_phone, images_json, amenities_json, data_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO NOTHING`,
+          args: [
+            property.id,
+            property.title,
+            property.slug,
+            property.description,
+            property.category,
+            property.location.city,
+            property.location.country,
+            property.location.address,
+            property.location.lat,
+            property.location.lng,
+            property.pricePerNightUSD,
+            property.cleaningFeeUSD,
+            property.maxGuests,
+            property.bedrooms,
+            property.bathrooms,
+            property.owner.whatsapp,
+            property.owner.phone,
+            JSON.stringify(property.images || []),
+            JSON.stringify(property.amenities || []),
+            JSON.stringify(property)
+          ]
+        });
+      }
+      console.log(`Successfully seeded ${INITIAL_PROPERTIES.length} properties into Turso database.`);
+    }
+  } catch (e) {
+    console.error("Failed to seed initial properties into Turso:", e);
+  }
 }
 
 async function startServer() {

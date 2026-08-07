@@ -186,15 +186,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
     e.preventDefault();
     if (!title || !city || !ownerName || !whatsapp) return;
 
-    // Check free listing limit (1 listing per mobile number) unless valid coupon code (5436) provided
-    const userPhone = whatsapp.trim() || phone.trim();
-    const storedProps = getStoredProperties();
     const isPremiumPass = isValidPremiumCoupon(couponCode);
-
-    if (hasReachedFreeListingLimit(storedProps, userPhone, undefined, isPremiumPass)) {
-      setLimitError(`Reached 1 free property listing limit for mobile number (${userPhone}). To list additional properties on ezy.homes, enter a valid premium coupon code or contact us via WhatsApp.`);
-      return;
-    }
 
     const finalPriceINR = Number(priceINR) > 0 
       ? Number(priceINR) 
@@ -994,11 +986,11 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                 {isValidPremiumCoupon(couponCode) ? (
                   <div className="p-2.5 rounded-xl bg-emerald-100/90 border border-emerald-300 text-xs font-bold text-emerald-900 flex items-center gap-2 animate-fadeIn">
                     <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span>✓ Premium Pass Activated! Unlimited listings & lifetime duration activated with Verified badge.</span>
+                    <span>✓ Partner / VIP Code Activated! Verified badge & lifetime priority active on ezy.homes.</span>
                   </div>
                 ) : (
                   <p className="text-[11px] text-amber-800 leading-snug">
-                    Enter premium coupon code to bypass free listing limits, keep listing active indefinitely without expiration, and display a verified badge.
+                    Listings are 100% free on ezy.homes! If you have a partner or promo coupon code, enter it above to display a verified badge on your property.
                   </p>
                 )}
               </div>
