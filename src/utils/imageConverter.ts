@@ -118,7 +118,28 @@ export async function uploadWebPToR2(
   if (onProgress) onProgress(60);
   const targetR2PublicUrl = `${R2_CONFIG.publicDevUrl}/${webpResult.fileName}`;
   
-  // Try to get a presigned URL from the backend
+  // 1. Primary Method: Upload via server proxy to bypass browser R2 CORS restrictions
+  try {
+    const res = await fetch(`/api/upload-direct?fileName=${encodeURIComponent(webpResult.fileName)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'image/webp',
+      },
+      body: webpResult.blob,
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.url) {
+        if (onProgress) onProgress(100);
+        return { r2Url: data.url, webpResult };
+      }
+    }
+  } catch (err) {
+    console.warn('Server proxy R2 upload failed, trying presigned URL fallback:', err);
+  }
+
+  // 2. Secondary Method: Try presigned URL directly from browser
   try {
     const presignRes = await fetch(`/api/upload-url?fileName=${encodeURIComponent(webpResult.fileName)}&contentType=image/webp`);
     if (presignRes.ok) {
@@ -136,8 +157,6 @@ export async function uploadWebPToR2(
         if (onProgress) onProgress(100);
         return { r2Url: targetR2PublicUrl, webpResult };
       }
-    } else {
-      console.warn("Backend didn't provide a presigned URL, likely missing credentials.");
     }
   } catch (err) {
     console.warn('Presigned URL fetch failed:', err);

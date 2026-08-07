@@ -31,14 +31,18 @@ const db = createClient({
 });
 
 // Setup R2 Client (AWS SDK V3)
+const r2AccountId = cleanEnv(process.env.CLOUDFLARE_R2_ACCOUNT_ID, 'CLOUDFLARE_R2_ACCOUNT_ID', '3b25d6fc00d328f896be8a3382324774');
+const r2AccessKeyId = cleanEnv(process.env.R2_ACCESS_KEY_ID, 'R2_ACCESS_KEY_ID', 'f14bb739067b7a74aaaff946cfe96681');
+const r2SecretAccessKey = cleanEnv(process.env.R2_SECRET_ACCESS_KEY, 'R2_SECRET_ACCESS_KEY', 'f8f5fc924f6866009916004f63ed4c824367f866f64f16eb4f6590d67353bfaa');
+
 let s3: S3Client | null = null;
-if (process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY) {
+if (r2AccessKeyId && r2SecretAccessKey) {
   s3 = new S3Client({
     region: "auto",
-    endpoint: `https://${process.env.CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    endpoint: `https://${r2AccountId}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+      accessKeyId: r2AccessKeyId,
+      secretAccessKey: r2SecretAccessKey,
     }
   });
 }
@@ -163,6 +167,39 @@ async function startServer() {
     } catch (e) {
       console.error("Failed to delete property from Turso:", e);
       res.status(500).json({ error: "Failed to delete property" });
+    }
+  });
+
+  app.post("/api/upload-direct", express.raw({ type: "*/*", limit: "25mb" }), async (req, res) => {
+    try {
+      const fileName = req.query.fileName as string;
+      const contentType = (req.headers['content-type'] as string) || 'image/webp';
+
+      if (!fileName) {
+        return res.status(400).json({ error: "fileName is required" });
+      }
+
+      if (!s3) {
+        return res.status(503).json({ error: "R2 credentials not configured on server" });
+      }
+
+      const bucketName = process.env.R2_BUCKET_NAME || 'ezyhomes-images';
+      const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: fileName,
+        Body: req.body,
+        ContentType: contentType,
+      });
+
+      await s3.send(command);
+
+      const r2PublicDomain = cleanEnv(process.env.R2_PUBLIC_DOMAIN, 'R2_PUBLIC_DOMAIN', 'https://pub-d98afd66f3284a9c98a71404da771d04.r2.dev');
+      const publicUrl = `${r2PublicDomain}/${fileName}`;
+
+      res.json({ success: true, url: publicUrl });
+    } catch (e) {
+      console.error("Failed to upload image directly to R2 via server proxy:", e);
+      res.status(500).json({ error: "Server R2 upload failed" });
     }
   });
 
