@@ -258,7 +258,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
       createdAt: new Date().toISOString().split('T')[0],
       isFeatured: true,
       isPremium: isPremiumPass,
-      isVerified: true,
+      isVerified: isPremiumPass,
     };
 
     onSaveProperty(newProperty);
