@@ -276,6 +276,46 @@ async function startServer() {
     }
   });
 
+  // Dynamic Sitemap XML Endpoint for Google Search Engine Indexing
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const result = await db.execute("SELECT id, slug, data_json FROM properties");
+      const today = new Date().toISOString().split('T')[0];
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+      
+      // Main Landing Pages
+      xml += `  <url><loc>https://www.ezy.homes/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>\n`;
+      
+      // Cities
+      const cities = ['bengaluru', 'mumbai', 'hyderabad', 'delhi-ncr', 'pune', 'goa', 'chennai', 'kolkata'];
+      for (const city of cities) {
+        xml += `  <url><loc>https://www.ezy.homes/${city}</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>\n`;
+      }
+
+      // High-Value Keyword Categories
+      const categories = ['rental-houses', 'free-rental-listing', 'property-listing', 'independent-room-stays', 'oyo-rooms', 'pg-hostel', 'mens-pg', 'womens-pg', 'monthly-rooms', 'daily-homestays'];
+      for (const cat of categories) {
+        xml += `  <url><loc>https://www.ezy.homes/${cat}</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>0.85</priority></url>\n`;
+      }
+
+      // Dynamic Property Listings from Database
+      result.rows.forEach(r => {
+        const id = r.id as string;
+        xml += `  <url><loc>https://www.ezy.homes/?property=${id}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;
+      });
+
+      xml += `</urlset>`;
+
+      res.header('Content-Type', 'application/xml');
+      res.send(xml);
+    } catch (e) {
+      console.error("Failed to generate dynamic sitemap.xml:", e);
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
