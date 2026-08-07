@@ -363,7 +363,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
 
               {/* Property Specs */}
-              <div className="flex items-center gap-4 py-3 border-y border-gray-100 text-xs sm:text-sm font-semibold text-gray-700">
+              <div className="flex items-center gap-4 py-3 border-y border-gray-100 text-xs sm:text-sm font-semibold text-gray-700 flex-wrap">
                 <span>{property.maxGuests} Guests</span>
                 <span>•</span>
                 <span>{property.bedrooms} Bedrooms</span>
@@ -371,6 +371,47 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <span>{property.beds} Beds</span>
                 <span>•</span>
                 <span>{property.bathrooms} Baths</span>
+              </div>
+
+              {/* Key Highlights & PG/Deposit Specifications Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col gap-3">
+                <h3 className="font-extrabold text-gray-900 text-xs uppercase tracking-wider text-rose-600">
+                  Key Specifications & Rental Terms
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-semibold text-gray-800">
+                  {property.rentalType === 'pg_hostel' && property.pgDetails && (
+                    <>
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">PG Gender</span>
+                        <span className="font-extrabold text-slate-900 capitalize">{property.pgDetails.gender} PG</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Sharing Type</span>
+                        <span className="font-extrabold text-slate-900 capitalize">{property.pgDetails.sharing} Sharing</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Food Included</span>
+                        <span className="font-extrabold text-emerald-700">{property.pgDetails.foodIncluded ? 'Yes (3 Meals)' : 'No Meals'}</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">AC Room</span>
+                        <span className="font-extrabold text-slate-900">{property.pgDetails.acAvailable ? 'AC Available' : 'Non-AC'}</span>
+                      </div>
+                    </>
+                  )}
+
+                  {property.securityDepositINR !== undefined && property.securityDepositINR > 0 && (
+                    <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">Security Deposit</span>
+                      <span className="font-extrabold text-rose-600">₹{property.securityDepositINR.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+
+                  <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase">Listing Category</span>
+                    <span className="font-extrabold text-slate-900 uppercase text-[11px]">{property.rentalType.replace('_', ' ')}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Description */}
