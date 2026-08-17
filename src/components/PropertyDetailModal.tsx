@@ -130,25 +130,19 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     setTimeout(() => setIsCopiedLink(false), 2500);
   };
 
-  // Date calculation
-  const calculateNights = () => {
-    if (!checkInDate || !checkOutDate) return 1;
-    const start = new Date(checkInDate);
-    const end = new Date(checkOutDate);
-    const diffTime = end.getTime() - start.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 1;
-  };
-
+  // Price calculation in INR
+  const priceINR = property.priceINR || (property.pricePerNightUSD * 83.5);
   const nights = calculateNights();
-  const subtotalUSD = property.pricePerNightUSD * nights;
-  const cleaningFeeUSD = property.cleaningFeeUSD;
-  const totalUSD = subtotalUSD + cleaningFeeUSD;
+  const isDaily = property.rentalType === 'daily_rental';
+  const subtotalINR = isDaily ? priceINR * nights : priceINR;
+  const cleaningFeeINR = (property.cleaningFeeUSD || 0) * 83.5;
+  const totalINR = subtotalINR + cleaningFeeINR;
 
   // Generate pre-filled WhatsApp message
   const getWhatsAppUrl = () => {
-    const defaultMsg = `Hello ${property.owner.name}, I found your property "${property.title}" on ezy.homes. I would like to book for ${nights} night(s) from ${checkInDate} to ${checkOutDate} for ${guestsCount} guest(s). Total calculated: ${formatPrice(totalUSD, activeCurrency)}. Is this available?`;
-    const finalMsg = customMessage ? `${customMessage} (Dates: ${checkInDate} to ${checkOutDate}, ${guestsCount} guests)` : defaultMsg;
+    const rateLabel = isDaily ? `${nights} night(s)` : `monthly rental`;
+    const defaultMsg = `Hello ${property.owner.name}, I found your property "${property.title}" in ${property.location.neighborhood}, ${property.location.city} on ezy.homes. I would like to inquire about booking for ${rateLabel} starting ${checkInDate} for ${guestsCount} person(s). Rate: ${formatPrice(priceINR, activeCurrency)}. Is this available?`;
+    const finalMsg = customMessage ? `${customMessage} (Inquiry for ${checkInDate}, ${guestsCount} guests)` : defaultMsg;
     return `https://wa.me/${property.owner.whatsapp}?text=${encodeURIComponent(finalMsg)}`;
   };
 
@@ -469,12 +463,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   lat={property.location.lat}
                   lng={property.location.lng}
                   title={property.title}
-                  priceFormatted={formatPrice(property.pricePerNightUSD, activeCurrency)}
+                  priceFormatted={formatPrice(priceINR, activeCurrency)}
                   nearbyPOIs={property.nearbyPOIs}
                 />
               </div>
-
-
 
               {/* House Rules */}
               <div className="flex flex-col gap-2 p-4 rounded-2xl bg-gray-50 border border-gray-100">
@@ -507,10 +499,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   <div className="flex items-baseline justify-between">
                     <div>
                       <span className="text-2xl font-black text-gray-900">
-                        {formatPrice(property.pricePerNightUSD, activeCurrency)}
+                        {formatPrice(priceINR, activeCurrency)}
                       </span>
                       <span className="text-xs text-gray-500 font-normal">
-                        {property.rentalType === 'daily_rental' ? ' / night' : ' / month'}
+                        {isDaily ? ' / night' : ' / month'}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 text-xs font-bold text-gray-900">
@@ -564,7 +556,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 {/* Guests Selector */}
                 <div className="flex items-center justify-between border border-gray-200 rounded-2xl p-3 bg-gray-50/50">
                   <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-rose-500" /> Guests
+                    <Users className="w-3.5 h-3.5 text-rose-500" /> Guests / Tenants
                   </span>
                   <div className="flex items-center gap-2">
                     <button
@@ -603,22 +595,24 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <div className="flex flex-col gap-2 pt-2 border-t border-gray-100 text-xs text-gray-600">
                   <div className="flex justify-between">
                     <span>
-                      {formatPrice(property.pricePerNightUSD, activeCurrency)} x {nights} night(s)
+                      {formatPrice(priceINR, activeCurrency)} {isDaily ? `x ${nights} night(s)` : ' / month'}
                     </span>
                     <span className="font-semibold text-gray-900">
-                      {formatPrice(subtotalUSD, activeCurrency)}
+                      {formatPrice(subtotalINR, activeCurrency)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Cleaning fee</span>
-                    <span className="font-semibold text-gray-900">
-                      {formatPrice(cleaningFeeUSD, activeCurrency)}
-                    </span>
-                  </div>
+                  {cleaningFeeINR > 0 && (
+                    <div className="flex justify-between">
+                      <span>Cleaning fee</span>
+                      <span className="font-semibold text-gray-900">
+                        {formatPrice(cleaningFeeINR, activeCurrency)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm font-extrabold text-gray-900 pt-2 border-t border-gray-200">
                     <span>Total</span>
                     <span className="text-rose-600">
-                      {formatPrice(totalUSD, activeCurrency)}
+                      {formatPrice(totalINR, activeCurrency)}
                     </span>
                   </div>
                 </div>

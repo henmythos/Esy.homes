@@ -35,9 +35,11 @@ const db = createClient({
 const r2AccountId = cleanEnv(process.env.CLOUDFLARE_R2_ACCOUNT_ID, 'CLOUDFLARE_R2_ACCOUNT_ID', '3b25d6fc00d328f896be8a3382324774');
 const r2AccessKeyId = cleanEnv(process.env.R2_ACCESS_KEY_ID, 'R2_ACCESS_KEY_ID', 'f14bb739067b7a74aaaff946cfe96681');
 const r2SecretAccessKey = cleanEnv(process.env.R2_SECRET_ACCESS_KEY, 'R2_SECRET_ACCESS_KEY', 'f8f5fc924f6866009916004f63ed4c824367f866f64f16eb4f6590d67353bfaa');
+const r2BucketName = cleanEnv(process.env.R2_BUCKET_NAME, 'R2_BUCKET_NAME', 'ezyhomes-images');
+const r2PublicDomain = cleanEnv(process.env.R2_PUBLIC_DOMAIN, 'R2_PUBLIC_DOMAIN', 'https://pub-d98afd66f3284a9c98a71404da771d04.r2.dev');
 
 let s3: S3Client | null = null;
-if (r2AccessKeyId && r2SecretAccessKey) {
+if (r2AccessKeyId && r2SecretAccessKey && r2AccountId) {
   s3 = new S3Client({
     region: "auto",
     endpoint: `https://${r2AccountId}.r2.cloudflarestorage.com`,
@@ -123,7 +125,56 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // CORS Middleware for browser cross-origin requests
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   app.use(express.json({ limit: "50mb" }));
+
+  // API Health Check & R2 Diagnostic Route
+  app.get("/api/r2-status", async (req, res) => {
+    try {
+      if (!s3) {
+        return res.status(503).json({
+          connected: false,
+          error: "S3 Client not initialized. Check R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY."
+        });
+      }
+
+      // Test PutObject with a tiny healthcheck file
+      const testKey = `healthcheck_${Date.now()}.txt`;
+      const testCmd = new PutObjectCommand({
+        Bucket: r2BucketName,
+        Key: testKey,
+        Body: "Cloudflare R2 Healthcheck Connection OK",
+        ContentType: "text/plain",
+      });
+
+      await s3.send(testCmd);
+
+      return res.json({
+        connected: true,
+        bucket: r2BucketName,
+        publicDomain: r2PublicDomain,
+        accountId: r2AccountId,
+        message: "Cloudflare R2 storage bucket connected and read/write verified!"
+      });
+    } catch (err: any) {
+      console.error("R2 Healthcheck failed:", err);
+      return res.status(500).json({
+        connected: false,
+        bucket: r2BucketName,
+        error: err.message || String(err)
+      });
+    }
+  });
 
   // API Routes
   app.get("/api/properties", async (req, res) => {
@@ -140,6 +191,9 @@ async function startServer() {
   app.post("/api/properties", async (req, res) => {
     try {
       const property = req.body;
+      if (!property || !property.id || !property.title) {
+        return res.status(400).json({ error: "Invalid property object: id and title are required" });
+      }
       
       await db.execute({
         sql: `INSERT INTO properties (
@@ -172,31 +226,32 @@ async function startServer() {
         args: [
           property.id,
           property.title,
-          property.slug,
-          property.description,
-          property.category,
-          property.location.city,
-          property.location.country,
-          property.location.address,
-          property.location.lat,
-          property.location.lng,
-          property.pricePerNightUSD,
-          property.cleaningFeeUSD,
-          property.maxGuests,
-          property.bedrooms,
-          property.bathrooms,
-          property.owner.whatsapp,
-          property.owner.phone,
+          property.slug || property.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          property.description || '',
+          property.category || 'daily_rental',
+          property.location?.city || 'Bengaluru',
+          property.location?.country || 'India',
+          property.location?.address || '',
+          property.location?.lat || 12.9352,
+          property.location?.lng || 77.6245,
+          property.pricePerNightUSD || 30,
+          property.cleaningFeeUSD || 0,
+          property.maxGuests || 2,
+          property.bedrooms || 1,
+          property.bathrooms || 1,
+          property.owner?.whatsapp || '',
+          property.owner?.phone || '',
           JSON.stringify(property.images || []),
           JSON.stringify(property.amenities || []),
           JSON.stringify(property)
         ]
       });
       
+      console.log(`[Turso DB] Property "${property.title}" (${property.id}) successfully saved!`);
       res.json({ success: true, property });
     } catch (e) {
       console.error("Failed to save property to Turso:", e);
-      res.status(500).json({ error: "Failed to save property" });
+      res.status(500).json({ error: "Failed to save property to database", details: String(e) });
     }
   });
 
@@ -224,12 +279,11 @@ async function startServer() {
       }
 
       if (!s3) {
-        return res.status(503).json({ error: "R2 credentials not configured on server" });
+        return res.status(503).json({ error: "Cloudflare R2 credentials not configured on server" });
       }
 
-      const bucketName = process.env.R2_BUCKET_NAME || 'ezyhomes-images';
       const command = new PutObjectCommand({
-        Bucket: bucketName,
+        Bucket: r2BucketName,
         Key: fileName,
         Body: req.body,
         ContentType: contentType,
@@ -237,13 +291,13 @@ async function startServer() {
 
       await s3.send(command);
 
-      const r2PublicDomain = cleanEnv(process.env.R2_PUBLIC_DOMAIN, 'R2_PUBLIC_DOMAIN', 'https://pub-d98afd66f3284a9c98a71404da771d04.r2.dev');
       const publicUrl = `${r2PublicDomain}/${fileName}`;
+      console.log(`[R2 Upload] Image successfully uploaded to R2: ${publicUrl}`);
 
       res.json({ success: true, url: publicUrl });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to upload image directly to R2 via server proxy:", e);
-      res.status(500).json({ error: "Server R2 upload failed" });
+      res.status(500).json({ error: "Server R2 upload failed", details: e?.message || String(e) });
     }
   });
 
@@ -257,13 +311,11 @@ async function startServer() {
       }
 
       if (!s3) {
-        // If R2 isn't configured with credentials, fallback to instructing client to use Data URLs
         return res.status(503).json({ error: "R2 credentials not configured on server" });
       }
 
-      const bucketName = process.env.R2_BUCKET_NAME || 'ezyhomes-images';
       const command = new PutObjectCommand({
-        Bucket: bucketName,
+        Bucket: r2BucketName,
         Key: fileName,
         ContentType: contentType,
       });

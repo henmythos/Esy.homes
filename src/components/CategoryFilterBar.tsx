@@ -23,6 +23,10 @@ export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
 }) => {
   return (
     <div className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-16 sm:top-20 z-20 shadow-2xs transition-all duration-200">
+      {/* Hidden/Semantic H1 for Search Engine Indexing */}
+      <h1 className="sr-only">
+        Free Property Listing Website - Post & Find Rentals, PG Hostels (Mens/Womens), Monthly Rooms & Daily Stays
+      </h1>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
         
         {/* Main Segmented Type Selector + City Selector in one stable row */}

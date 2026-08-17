@@ -278,6 +278,35 @@ CREATE TABLE IF NOT EXISTS availability_calendar (
                   className="px-3.5 py-2.5 rounded-xl border border-gray-200 font-mono text-xs bg-white"
                 />
               </div>
+
+              {/* R2 Connection Test */}
+              <div className="p-4 rounded-2xl bg-white border border-gray-200 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-xs">Verify R2 Cloudflare Connection</h4>
+                    <p className="text-[11px] text-gray-500">Pings `/api/r2-status` to test live bucket read/write permissions</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/r2-status');
+                        const data = await res.json();
+                        if (data.connected) {
+                          alert(`✅ Cloudflare R2 Connected Successfully!\nBucket: ${data.bucket}\nPublic Domain: ${data.publicDomain}`);
+                        } else {
+                          alert(`❌ Cloudflare R2 Connection Error:\n${data.error || 'Server error'}`);
+                        }
+                      } catch (err: any) {
+                        alert(`❌ Unable to reach R2 status endpoint: ${err.message}`);
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
+                  >
+                    <Cloud className="w-3.5 h-3.5" /> Test R2 Connection
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

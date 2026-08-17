@@ -5,12 +5,22 @@
  * in the browser before uploading to Cloudflare R2 storage.
  */
 
+import { getSelfHostConfig } from './storage';
+
 export const R2_CONFIG = {
   bucketName: 'ezyhomes-images',
   endpoint: 'https://3b25d6fc00d328f896be8a3382324774.r2.cloudflarestorage.com/ezyhomes-images',
   publicDevUrl: 'https://pub-d98afd66f3284a9c98a71404da771d04.r2.dev',
   maxImagesPerProperty: 5,
 };
+
+export function getR2PublicDomain(): string {
+  const cfg = getSelfHostConfig();
+  if (cfg && cfg.cloudflareR2PublicDomain) {
+    return cfg.cloudflareR2PublicDomain.replace(/\/$/, '');
+  }
+  return R2_CONFIG.publicDevUrl;
+}
 
 export interface WebpConversionResult {
   blob: Blob;
@@ -24,12 +34,12 @@ export interface WebpConversionResult {
 
 /**
  * Converts any image File into a WebP Blob using HTML5 Canvas.
- * Optionally resizes image to max 1920px width/height for fast web loading.
+ * Optionally resizes image to max 1400px width/height for fast web loading.
  */
 export async function convertToWebP(
   file: File,
-  quality: number = 0.80,
-  maxDimension: number = 1200
+  quality: number = 0.78,
+  maxDimension: number = 1400
 ): Promise<WebpConversionResult> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -113,12 +123,15 @@ export async function uploadWebPToR2(
   onProgress?: (percent: number) => void
 ): Promise<{ r2Url: string; webpResult: WebpConversionResult }> {
   if (onProgress) onProgress(20);
-  const webpResult = await convertToWebP(file, 0.85, 1920);
+  const webpResult = await convertToWebP(file, 0.78, 1400);
   
   if (onProgress) onProgress(60);
-  const targetR2PublicUrl = `${R2_CONFIG.publicDevUrl}/${webpResult.fileName}`;
+  const publicDomain = getR2PublicDomain();
+  const targetR2PublicUrl = `${publicDomain}/${webpResult.fileName}`;
   
-  // 1. Primary Method: Upload via server proxy to bypass browser R2 CORS restrictions
+  let lastErrorMsg = '';
+
+  // 1. Primary Method: Upload via server proxy (/api/upload-direct)
   try {
     const res = await fetch(`/api/upload-direct?fileName=${encodeURIComponent(webpResult.fileName)}`, {
       method: 'POST',
@@ -134,9 +147,14 @@ export async function uploadWebPToR2(
         if (onProgress) onProgress(100);
         return { r2Url: data.url, webpResult };
       }
+    } else {
+      const errJson = await res.json().catch(() => ({}));
+      lastErrorMsg = errJson.error || errJson.details || `Server upload returned status ${res.status}`;
+      console.warn('Server proxy R2 upload returned error:', lastErrorMsg);
     }
-  } catch (err) {
-    console.warn('Server proxy R2 upload failed, trying presigned URL fallback:', err);
+  } catch (err: any) {
+    lastErrorMsg = err.message || String(err);
+    console.warn('Server proxy R2 upload fetch failed:', err);
   }
 
   // 2. Secondary Method: Try presigned URL directly from browser
@@ -162,30 +180,17 @@ export async function uploadWebPToR2(
     console.warn('Presigned URL fetch failed:', err);
   }
 
-  // Fallback: Attempt direct PUT upload to R2 endpoint (if bucket is public-write)
-  try {
-    const uploadUrl = `${R2_CONFIG.endpoint}/${webpResult.fileName}`;
-    const response = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'image/webp',
-      },
-      body: webpResult.blob,
-    });
-    
-    if (response.ok) {
-      if (onProgress) onProgress(100);
-      return { r2Url: targetR2PublicUrl, webpResult };
-    }
-  } catch (err) {
-    console.warn('Direct R2 PUT fetch fallback to client WebP Data URL:', err);
+  // If R2 upload server endpoint failed, throw clear error so user knows R2 connection failed
+  if (onProgress) onProgress(100);
+
+  // If WebP blob is small enough (<300KB), return DataURL with warning if fallback needed
+  if (webpResult.blob.size < 400000) {
+    console.warn(`R2 upload failed (${lastErrorMsg}), falling back to compressed WebP data URL`);
+    return {
+      r2Url: webpResult.dataUrl,
+      webpResult,
+    };
   }
 
-  // Final Fallback: Always return WebP DataURL when R2 fails
-  if (onProgress) onProgress(100);
-  
-  return {
-    r2Url: webpResult.dataUrl,
-    webpResult,
-  };
-}
+  throw new Error(`Cloudflare R2 image upload failed: ${lastErrorMsg || 'Server endpoint unreachable'}`);
+}

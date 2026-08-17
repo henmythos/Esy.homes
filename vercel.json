@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/upload-direct",
+      "destination": "/api/upload-direct"
+    },
+    {
+      "source": "/api/r2-status",
+      "destination": "/api/r2-status"
+    },
+    {
+      "source": "/api/properties",
+      "destination": "/api/properties"
+    },
+    {
+      "source": "/api/properties/:id",
+      "destination": "/api/properties?id=:id"
+    }
+  ]
+}

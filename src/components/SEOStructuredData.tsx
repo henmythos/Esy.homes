@@ -113,9 +113,9 @@ export const SEOStructuredData: React.FC<SEOStructuredDataProps> = ({
 
     } else {
       // Default Global Site Meta
-      const defaultTitle = 'ezy.homes | Rental Houses, Free Rental Listing & Independent Room Stays';
-      const defaultDesc = 'Discover verified rental houses, independent room stays, monthly flats, and OYO rooms style homestays with free property listing for owners & zero brokerage in India.';
-      const defaultKeywords = 'rental houses, free rental listing, property listing, oyo rooms, independent room stays, house for rent without broker, mens pg, womens pg, monthly flat rental, zero brokerage room stays, ezy homes';
+      const defaultTitle = 'Free Property Listing Website - Post Rentals, PG Hostels & Daily Stays | ezy.homes';
+      const defaultDesc = '100% Free Property Listing Website for owners & Zero Brokerage for tenants. Post & find rental houses, mens/womens PG hostels, monthly rooms, and daily stays across India with direct WhatsApp & Call contact.';
+      const defaultKeywords = 'free property listing website, free rental listing, post property for rent free, rental houses, pg hostel, mens pg, womens pg, daily stays, independent room stays, monthly room rental, house for rent without broker, zero brokerage, ezy homes';
       
       document.title = defaultTitle;
       updateMeta('name', 'description', defaultDesc);
@@ -132,6 +132,90 @@ export const SEOStructuredData: React.FC<SEOStructuredDataProps> = ({
         existingSingle.remove();
       }
     }
+
+    // FAQ Schema for Google Search Rich Results
+    const faqSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': 'How do I post a free property listing on ezy.homes?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Property owners can post 100% free rental property listings by clicking the "List Property" button. Enter your rental type (House Rental, PG Hostel, Monthly Room, or Daily Stay), set your rent and security deposit, upload photos (auto-converted to WebP and hosted on Cloudflare R2), and add your direct WhatsApp and phone number for instant tenant leads with zero commission.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Is there any brokerage or commission fee for tenants or hosts?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'No. ezy.homes is a 100% zero brokerage platform. Tenants connect directly with property owners and PG managers via WhatsApp or Direct Call without paying any middleman commission.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'What types of properties can I find on ezy.homes?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'You can find verified Rental Houses (1BHK, 2BHK, 3BHK), PG Hostels (Mens PG, Womens PG, Unisex PG with 1/2/3 sharing and meal plans), Monthly Independent Rooms, and Daily Stays across top Indian cities.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'How does Cloudflare R2 image optimization work for property photos?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'When property owners upload photos, ezy.homes automatically compresses and converts images to high-quality WebP format in the browser before uploading to fast Cloudflare R2 CDN storage for instant mobile page loads.'
+          }
+        }
+      ]
+    };
+
+    let scriptFaq = document.getElementById('jsonld-faq') as HTMLScriptElement | null;
+    if (!scriptFaq) {
+      scriptFaq = document.createElement('script');
+      scriptFaq.id = 'jsonld-faq';
+      scriptFaq.type = 'application/ld+json';
+      document.head.appendChild(scriptFaq);
+    }
+    scriptFaq.textContent = JSON.stringify(faqSchema);
+
+    // Breadcrumb Schema for Sitelinks
+    const breadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      'itemListElement': [
+        {
+          '@type': 'ListItem',
+          'position': 1,
+          'name': 'Home',
+          'item': `${origin}/`
+        },
+        {
+          '@type': 'ListItem',
+          'position': 2,
+          'name': 'Free Rental Property Listing',
+          'item': `${origin}/#list-property`
+        },
+        {
+          '@type': 'ListItem',
+          'position': 3,
+          'name': 'PG Hostels & Room Rentals',
+          'item': `${origin}/#pg-hostels`
+        }
+      ]
+    };
+
+    let scriptBreadcrumb = document.getElementById('jsonld-breadcrumb') as HTMLScriptElement | null;
+    if (!scriptBreadcrumb) {
+      scriptBreadcrumb = document.createElement('script');
+      scriptBreadcrumb.id = 'jsonld-breadcrumb';
+      scriptBreadcrumb.type = 'application/ld+json';
+      document.head.appendChild(scriptBreadcrumb);
+    }
+    scriptBreadcrumb.textContent = JSON.stringify(breadcrumbSchema);
 
     // ItemList Schema for Google Search Grid
     const itemListSchema = {

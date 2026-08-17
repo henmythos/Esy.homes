@@ -1,0 +1,126 @@
+import { createClient } from '@libsql/client';
+
+function cleanEnv(val: string | undefined, prefix: string, defaultVal: string) {
+  if (!val) return defaultVal;
+  let res = val.trim();
+  if (res.startsWith(`${prefix}=`)) {
+    res = res.substring(prefix.length + 1);
+  }
+  if ((res.startsWith('"') && res.endsWith('"')) || (res.startsWith("'") && res.endsWith("'"))) {
+    res = res.substring(1, res.length - 1);
+  }
+  return res;
+}
+
+const tursoUrl = cleanEnv(process.env.TURSO_DATABASE_URL, 'TURSO_DATABASE_URL', 'libsql://ezy-homes-vercel-icfg-cnxx2242ugtirkjfrpb3fzwu.aws-ap-south-1.turso.io');
+const tursoToken = cleanEnv(process.env.TURSO_AUTH_TOKEN, 'TURSO_AUTH_TOKEN', 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODU5OTA3OTUsImlkIjoiMDE5ZmQ1NTgtY2UwMS03ZTM1LWJjZmYtYmQwMWNmNmYxYmY5Iiwia2lkIjoiRHFFM252OEVEWXp6Z1hrMXQ5ODBINXR5MmJNUVpOOWcxMFF2RnhLM3BJcyIsInJpZCI6IjBlMzE0YzY3LThkYWItNDM2Ni1iOTBkLWYzYTc3M2I5NzRmNiJ9.qRocAor7xXLZaX_mpwNegNMq-3ukrzFzVl7hqrhPhQx10xchY2nZ3AJzYEawh5H9fQi-p4CJrTKEtfTe5ovxAg');
+
+const db = createClient({
+  url: tursoUrl,
+  authToken: tursoToken,
+});
+
+export default async function handler(req: any, res: any) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method === "GET") {
+    try {
+      const result = await db.execute("SELECT data_json FROM properties");
+      const properties = result.rows.map(r => JSON.parse(r.data_json as string));
+      return res.status(200).json(properties);
+    } catch (e: any) {
+      console.error("Failed to fetch properties from Turso:", e);
+      return res.status(500).json({ error: "Failed to fetch properties", details: e?.message || String(e) });
+    }
+  }
+
+  if (req.method === "POST") {
+    try {
+      const property = req.body;
+      if (!property || !property.id || !property.title) {
+        return res.status(400).json({ error: "Invalid property object: id and title are required" });
+      }
+
+      await db.execute({
+        sql: `INSERT INTO properties (
+          id, title, slug, description, category, city, country, address,
+          latitude, longitude, price_per_night_usd, cleaning_fee_usd, max_guests,
+          bedrooms, bathrooms, owner_whatsapp, owner_phone, images_json, amenities_json, data_json
+        ) VALUES (
+          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+        ON CONFLICT(id) DO UPDATE SET
+          title=excluded.title,
+          slug=excluded.slug,
+          description=excluded.description,
+          category=excluded.category,
+          city=excluded.city,
+          country=excluded.country,
+          address=excluded.address,
+          latitude=excluded.latitude,
+          longitude=excluded.longitude,
+          price_per_night_usd=excluded.price_per_night_usd,
+          cleaning_fee_usd=excluded.cleaning_fee_usd,
+          max_guests=excluded.max_guests,
+          bedrooms=excluded.bedrooms,
+          bathrooms=excluded.bathrooms,
+          owner_whatsapp=excluded.owner_whatsapp,
+          owner_phone=excluded.owner_phone,
+          images_json=excluded.images_json,
+          amenities_json=excluded.amenities_json,
+          data_json=excluded.data_json`,
+        args: [
+          property.id,
+          property.title,
+          property.slug || property.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          property.description || '',
+          property.category || 'daily_rental',
+          property.location?.city || 'Bengaluru',
+          property.location?.country || 'India',
+          property.location?.address || '',
+          property.location?.lat || 12.9352,
+          property.location?.lng || 77.6245,
+          property.pricePerNightUSD || 30,
+          property.cleaningFeeUSD || 0,
+          property.maxGuests || 2,
+          property.bedrooms || 1,
+          property.bathrooms || 1,
+          property.owner?.whatsapp || '',
+          property.owner?.phone || '',
+          JSON.stringify(property.images || []),
+          JSON.stringify(property.amenities || []),
+          JSON.stringify(property)
+        ]
+      });
+
+      return res.status(200).json({ success: true, property });
+    } catch (e: any) {
+      console.error("Failed to save property to Turso:", e);
+      return res.status(500).json({ error: "Failed to save property", details: e?.message || String(e) });
+    }
+  }
+
+  if (req.method === "DELETE") {
+    try {
+      const id = req.query.id as string;
+      if (!id) {
+        return res.status(400).json({ error: "id parameter required" });
+      }
+      await db.execute({
+        sql: "DELETE FROM properties WHERE id = ?",
+        args: [id]
+      });
+      return res.status(200).json({ success: true });
+    } catch (e: any) {
+      return res.status(500).json({ error: "Failed to delete property", details: e?.message || String(e) });
+    }
+  }
+
+  return res.status(405).json({ error: "Method not allowed" });
+}
