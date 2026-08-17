@@ -184,7 +184,30 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !city || !ownerName || !whatsapp) return;
+    setUploadError('');
+
+    if (imageUrls.length === 0) {
+      setUploadError('⚠️ At least 1 property photo is MANDATORY for listing on ezy.homes. Please upload or add a photo.');
+      setStep(3);
+      return;
+    }
+
+    if (!title.trim()) {
+      setUploadError('Property title is required.');
+      setStep(1);
+      return;
+    }
+
+    if (!city.trim() || !neighborhood.trim()) {
+      setUploadError('City and Neighborhood are required.');
+      setStep(1);
+      return;
+    }
+
+    if (!ownerName.trim() || !whatsapp.trim()) {
+      setUploadError('Host Name and WhatsApp Number are required on Step 3.');
+      return;
+    }
 
     const isPremiumPass = isValidPremiumCoupon(couponCode);
 
@@ -230,9 +253,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
         noticePeriodDays: 30,
         gateClosingTime: '11:00 PM'
       } : undefined,
-      images: imageUrls.length > 0 ? imageUrls : [
-        'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80'
-      ],
+      images: imageUrls,
       amenities: selectedAmenities.length > 0 ? selectedAmenities : ['wifi', 'security'],
       customAmenities: customAmenities.length > 0 ? customAmenities : undefined,
       nearbyPOIs: pois,

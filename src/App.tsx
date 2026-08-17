@@ -16,7 +16,56 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { parseNaturalLanguageQuery, extractLocationTokens } from './utils/aiQueryParser';
 import { Heart, Search, MapPin, MessageSquare, Building2 } from 'lucide-react';
 
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ezy.homes UI Error Boundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4 border border-rose-200 shadow-sm">
+            <Building2 className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-extrabold text-gray-900 mb-1">ezy.homes</h2>
+          <p className="text-xs text-gray-600 max-w-sm mb-4">
+            Something unexpected occurred while rendering. Click below to reload your properties.
+          </p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, error: null });
+              window.location.href = '/';
+            }}
+            className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-md"
+          >
+            Reload Properties
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
+  return (
+    <ErrorBoundary>
+      <MainAppContent />
+    </ErrorBoundary>
+  );
+}
+
+function MainAppContent() {
   // Main Data States
   const [properties, setProperties] = useState<Property[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -133,9 +182,14 @@ export default function App() {
 
   // Handle Adding New Host Property
   const handleSaveNewProperty = async (newProperty: Property) => {
-    const updatedList = await savePropertyToStore(newProperty);
-    setProperties(updatedList);
-    handleSelectProperty(newProperty);
+    setIsHostModalOpen(false);
+    try {
+      const updatedList = await savePropertyToStore(newProperty);
+      setProperties(updatedList);
+      handleSelectProperty(newProperty);
+    } catch (e) {
+      console.error("Failed to save property:", e);
+    }
   };
 
   // Handle Deleting Host Property

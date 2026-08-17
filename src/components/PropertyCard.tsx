@@ -22,14 +22,24 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
 
+  // Safe fallback guards for properties
+  const propertyImages = (Array.isArray(property?.images) && property.images.length > 0)
+    ? property.images
+    : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80'];
+
+  const ratingVal = typeof property?.rating === 'number' ? property.rating : 5.0;
+  const pois = Array.isArray(property?.nearbyPOIs) ? property.nearbyPOIs : [];
+  const neighborhood = property?.location?.neighborhood || property?.location?.city || 'Location';
+  const city = property?.location?.city || '';
+
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentImageIdx((prev) => (prev + 1) % property.images.length);
+    setCurrentImageIdx((prev) => (prev + 1) % propertyImages.length);
   };
 
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setCurrentImageIdx((prev) => (prev - 1 + property.images.length) % property.images.length);
+    setCurrentImageIdx((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -38,7 +48,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     if (navigator.share) {
       navigator.share({
         title: `${property.title} | ezy.homes`,
-        text: `Check out ${property.title} in ${property.location.neighborhood}, ${property.location.city} on ezy.homes`,
+        text: `Check out ${property.title} in ${neighborhood}, ${city} on ezy.homes`,
         url: shareUrl,
       }).catch(() => {
         navigator.clipboard.writeText(shareUrl);
@@ -85,7 +95,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
       {/* Image Container with Slider */}
       <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-gray-100 shadow-2xs">
         <img
-          src={property.images[currentImageIdx] || property.images[0]}
+          src={propertyImages[currentImageIdx] || propertyImages[0]}
           alt={property.title}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-103"
@@ -143,7 +153,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
 
         {/* Slider Navigation Arrows */}
-        {property.images.length > 1 && (
+        {propertyImages.length > 1 && (
           <>
             <button
               onClick={prevImage}
@@ -161,9 +171,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         )}
 
         {/* Image Dots Indicator */}
-        {property.images.length > 1 && (
+        {propertyImages.length > 1 && (
           <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
-            {property.images.map((_, idx) => (
+            {propertyImages.map((_, idx) => (
               <span
                 key={idx}
                 className={`h-1.5 rounded-full transition-all ${
@@ -180,11 +190,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Location & Rating */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-extrabold text-gray-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-rose-600 transition-colors">
-            {property.location.neighborhood}, {property.location.city}
+            {neighborhood}, {city}
           </h3>
           <div className="flex items-center gap-1 shrink-0 text-xs font-bold text-gray-900 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
             <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span>{property.rating.toFixed(2)}</span>
+            <span>{ratingVal.toFixed(2)}</span>
           </div>
         </div>
 
@@ -209,10 +219,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         )}
 
         {/* Nearby POI */}
-        {property.nearbyPOIs.length > 0 && (
+        {pois.length > 0 && (
           <p className="text-[11px] text-gray-500 flex items-center gap-1 line-clamp-1 mt-0.5">
             <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
-            <span>{property.nearbyPOIs[0].distanceMeters}m from {property.nearbyPOIs[0].name}</span>
+            <span>{pois[0].distanceMeters}m from {pois[0].name}</span>
           </p>
         )}
 
