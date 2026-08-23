@@ -1,0 +1,23 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+}// Root settings file to bridge the Android project into the IDE root
+rootProject.name = 'ezy.homes'
+
+include ':app'
+project(':app').projectDir = file('android/app')
+
+include ':capacitor-cordova-android-plugins'
+project(':capacitor-cordova-android-plugins').projectDir = file('android/capacitor-cordova-android-plugins')
+
+// Capacitor specific modules from node_modules
+include ':capacitor-android'
+project(':capacitor-android').projectDir = file('node_modules/@capacitor/android/capacitor')
+
+include ':capacitor-app'
+project(':capacitor-app').projectDir = file('node_modules/@capacitor/app/android')
+
+include ':capacitor-keyboard'
+project(':capacitor-keyboard').projectDir = file('node_modules/@capacitor/keyboard/android')
+
+include ':capacitor-status-bar'
+project(':capacitor-status-bar').projectDir = file('node_modules/@capacitor/status-bar/android')

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Property, PointOfInterest, RentalType } from '../types';
 import { INDIAN_CITIES } from '../data/indianCities';
 import { ALL_AMENITIES } from '../data/amenities';
@@ -18,6 +18,18 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
   onClose,
 }) => {
   const [step, setStep] = useState<number>(1);
+  const formRef = useRef<HTMLFormElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  // Automatically reset scroll position to TOP when wizard step changes or opens
+  useEffect(() => {
+    if (formRef.current) {
+      formRef.current.scrollTop = 0;
+    }
+    if (backdropRef.current) {
+      backdropRef.current.scrollTop = 0;
+    }
+  }, [step]);
 
   // Rental Type State
   const [rentalType, setRentalType] = useState<RentalType>('pg_hostel');
@@ -313,7 +325,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div ref={backdropRef} className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden my-auto border border-gray-100 flex flex-col max-h-[90vh]">
         
         {/* Modal Header */}
@@ -342,7 +354,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
         </div>
 
         {/* Modal Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex flex-col gap-5">
+        <form ref={formRef} onSubmit={handleSubmit} className="p-6 overflow-y-auto flex flex-col gap-5">
           
           {limitError && (
             <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex flex-col gap-2.5 animate-fadeIn">

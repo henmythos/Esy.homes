@@ -249,6 +249,9 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 src={propertyImages[activePhotoIdx] || propertyImages[0]}
                 alt={property.title}
                 onClick={() => setIsFullscreenView(true)}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80';
+                }}
                 className="w-full h-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-101"
               />
 

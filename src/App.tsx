@@ -5,6 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { Currency, Property, SearchFilters, SelfHostConfig } from './types';
 import { getStoredProperties, savePropertyToStore, deletePropertyFromStore, getWishlistIds, toggleWishlistId, getSelfHostConfig, saveSelfHostConfig } from './utils/storage';
+import { sortProperties } from './utils/sorting';
 import { Header } from './components/Header';
 import { CategoryFilterBar } from './components/CategoryFilterBar';
 import { PropertyCard } from './components/PropertyCard';
@@ -280,7 +281,7 @@ function MainAppContent() {
 
   // Filter properties in memory (low latency instant search)
   const filteredProperties = useMemo(() => {
-    return properties.filter((prop) => {
+    const matched = properties.filter((prop) => {
       // Rental Type Filter (Daily, PG Hostel, Monthly Room)
       if (filters.rentalType && filters.rentalType !== 'all') {
         if (prop.rentalType !== filters.rentalType) return false;
@@ -347,6 +348,8 @@ function MainAppContent() {
 
       return true;
     });
+
+    return sortProperties(matched);
   }, [properties, filters, activeMobileTab, wishlist]);
 
   return (

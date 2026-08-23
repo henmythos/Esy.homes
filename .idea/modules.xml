@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ezy.homes.iml" filepath="$PROJECT_DIR$/.idea/modules/ezy.homes.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.iml" filepath="$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/android/app/ezy.homes.app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.main.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/android/capacitor/ezy.homes.capacitor-android.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/app/android/ezy.homes.capacitor-app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.iml" filepath="$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.main.iml" filepath="$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/android/capacitor-cordova-android-plugins/ezy.homes.capacitor-cordova-android-plugins.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.main.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/keyboard/android/ezy.homes.capacitor-keyboard.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.main.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/node_modules/@capacitor/status-bar/android/ezy.homes.capacitor-status-bar.unitTest.iml" />
+    </modules>
+  </component>
+</project>

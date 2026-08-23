@@ -181,6 +181,33 @@ async function startServer() {
     try {
       const result = await db.execute("SELECT data_json FROM properties");
       const properties = result.rows.map(r => JSON.parse(r.data_json as string));
+
+      properties.sort((a, b) => {
+        const getT = (p: any) => {
+          if (p.id) {
+            const m = String(p.id).match(/\d{10,13}/);
+            if (m) {
+              const num = parseInt(m[0], 10);
+              if (!isNaN(num) && num > 1000000000) return num > 1000000000000 ? num : num * 1000;
+            }
+          }
+          return p.createdAt ? new Date(p.createdAt).getTime() : 0;
+        };
+        const aPrem = a.isPremium || a.isVerified || a.isFeatured ? 1 : 0;
+        const bPrem = b.isPremium || b.isVerified || b.isFeatured ? 1 : 0;
+        if (aPrem !== bPrem) return bPrem - aPrem;
+
+        const aHasImg = Array.isArray(a.images) && a.images.length > 0;
+        const bHasImg = Array.isArray(b.images) && b.images.length > 0;
+        if (aHasImg !== bHasImg) return aHasImg ? -1 : 1;
+
+        const aT = getT(a);
+        const bT = getT(b);
+        if (aT !== bT) return bT - aT;
+
+        return (b.rating || 0) - (a.rating || 0);
+      });
+
       res.json(properties);
     } catch (e) {
       console.error("Failed to fetch properties from Turso:", e);

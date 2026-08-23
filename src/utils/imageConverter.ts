@@ -31,26 +31,62 @@ export interface WebpConversionResult {
   originalSize: number;
   webpSize: number;
   fileName: string;
+  mimeType: string;
 }
 
 /**
- * Converts any image File into a WebP Blob using HTML5 Canvas.
- * Optionally resizes image to max 1400px width/height for fast web loading.
+ * Converts any image File into WebP (or graceful fallback JPEG / original format).
+ * Gracefully handles canvas errors, unsupported WebP browser engines, and EXIF issues.
  */
 export async function convertToWebP(
   file: File,
   quality: number = 0.78,
   maxDimension: number = 1400
 ): Promise<WebpConversionResult> {
-  return new Promise((resolve, reject) => {
+  const cleanName = file.name
+    .toLowerCase()
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-z0-9]+/g, '-');
+
+  const createOriginalFallback = (fallbackBlob: Blob, ext: string, mime: string): Promise<WebpConversionResult> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve({
+          blob: fallbackBlob,
+          dataUrl: (e.target?.result as string) || '',
+          width: 800,
+          height: 600,
+          originalSize: file.size,
+          webpSize: fallbackBlob.size,
+          fileName: `prop_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanName}.${ext}`,
+          mimeType: mime,
+        });
+      };
+      reader.onerror = () => {
+        resolve({
+          blob: fallbackBlob,
+          dataUrl: '',
+          width: 800,
+          height: 600,
+          originalSize: file.size,
+          webpSize: fallbackBlob.size,
+          fileName: `prop_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanName}.${ext}`,
+          mimeType: mime,
+        });
+      };
+      reader.readAsDataURL(fallbackBlob);
+    });
+  };
+
+  return new Promise((resolve) => {
     const reader = new FileReader();
 
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        // Calculate aspect-ratio preserving dimensions
-        let width = img.width;
-        let height = img.height;
+        let width = img.width || 800;
+        let height = img.height || 600;
 
         if (width > maxDimension || height > maxDimension) {
           if (width > height) {
@@ -68,56 +104,79 @@ export async function convertToWebP(
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          reject(new Error('Canvas context 2d not supported'));
+          console.warn('[ImageConverter] 2D canvas context unavailable, falling back to original file format');
+          createOriginalFallback(file, file.name.split('.').pop() || 'jpg', file.type || 'image/jpeg').then(resolve);
           return;
         }
 
-        // Draw image on canvas
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Convert canvas content to image/webp
-        const dataUrl = canvas.toDataURL('image/webp', quality);
-
+        // 1. Primary: Convert canvas to image/webp blob
         canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error('WebP conversion failed'));
-              return;
+          (webpBlob) => {
+            if (webpBlob && webpBlob.size > 0) {
+              const dataUrl = canvas.toDataURL('image/webp', quality);
+              resolve({
+                blob: webpBlob,
+                dataUrl,
+                width,
+                height,
+                originalSize: file.size,
+                webpSize: webpBlob.size,
+                fileName: `prop_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanName}.webp`,
+                mimeType: 'image/webp',
+              });
+            } else {
+              // 2. Secondary Fallback: Convert canvas to JPEG blob
+              console.warn('[ImageConverter] WebP blob conversion returned empty, falling back to JPEG');
+              canvas.toBlob(
+                (jpegBlob) => {
+                  if (jpegBlob && jpegBlob.size > 0) {
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    resolve({
+                      blob: jpegBlob,
+                      dataUrl,
+                      width,
+                      height,
+                      originalSize: file.size,
+                      webpSize: jpegBlob.size,
+                      fileName: `prop_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanName}.jpg`,
+                      mimeType: 'image/jpeg',
+                    });
+                  } else {
+                    // 3. Final Fallback: Original File
+                    createOriginalFallback(file, 'jpg', 'image/jpeg').then(resolve);
+                  }
+                },
+                'image/jpeg',
+                0.85
+              );
             }
-
-            const cleanName = file.name
-              .toLowerCase()
-              .replace(/\.[^/.]+$/, '')
-              .replace(/[^a-z0-9]+/g, '-');
-            
-            const uniqueName = `prop_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanName}.webp`;
-
-            resolve({
-              blob,
-              dataUrl,
-              width,
-              height,
-              originalSize: file.size,
-              webpSize: blob.size,
-              fileName: uniqueName,
-            });
           },
           'image/webp',
           quality
         );
       };
 
-      img.onerror = () => reject(new Error('Failed to load image for WebP conversion'));
+      img.onerror = () => {
+        console.warn('[ImageConverter] Failed to load image element, falling back to original file format');
+        createOriginalFallback(file, file.name.split('.').pop() || 'jpg', file.type || 'image/jpeg').then(resolve);
+      };
+
       img.src = e.target?.result as string;
     };
 
-    reader.onerror = () => reject(new Error('FileReader failed to read image file'));
+    reader.onerror = () => {
+      console.warn('[ImageConverter] FileReader error, falling back to original file format');
+      createOriginalFallback(file, file.name.split('.').pop() || 'jpg', file.type || 'image/jpeg').then(resolve);
+    };
+
     reader.readAsDataURL(file);
   });
 }
 
 /**
- * Uploads a WebP converted image to Cloudflare R2 bucket "ezyhomes-images"
+ * Uploads an image to Cloudflare R2 bucket "ezyhomes-images"
  */
 export async function uploadWebPToR2(
   file: File,
@@ -138,7 +197,7 @@ export async function uploadWebPToR2(
     const res = await fetch(uploadApiEndpoint, {
       method: 'POST',
       headers: {
-        'Content-Type': 'image/webp',
+        'Content-Type': webpResult.mimeType || 'image/webp',
       },
       body: webpResult.blob,
     });
@@ -161,7 +220,7 @@ export async function uploadWebPToR2(
 
   // 2. Secondary Method: Try presigned URL directly from browser
   try {
-    const presignApiEndpoint = getApiUrl(`/api/upload-url?fileName=${encodeURIComponent(webpResult.fileName)}&contentType=image/webp`);
+    const presignApiEndpoint = getApiUrl(`/api/upload-url?fileName=${encodeURIComponent(webpResult.fileName)}&contentType=${encodeURIComponent(webpResult.mimeType || 'image/webp')}`);
     const presignRes = await fetch(presignApiEndpoint);
     if (presignRes.ok) {
       const { uploadUrl } = await presignRes.json();
@@ -169,7 +228,7 @@ export async function uploadWebPToR2(
       const response = await fetch(uploadUrl, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'image/webp',
+          'Content-Type': webpResult.mimeType || 'image/webp',
         },
         body: webpResult.blob,
       });
@@ -183,7 +242,6 @@ export async function uploadWebPToR2(
     console.warn('Presigned URL fetch failed:', err);
   }
 
-  // If R2 upload failed, throw clear error so user knows R2 connection or server endpoint failed
   if (onProgress) onProgress(100);
   throw new Error(`Cloudflare R2 image upload failed: ${lastErrorMsg || 'Server R2 upload endpoint unreachable. Please verify R2 credentials.'}`);
 }

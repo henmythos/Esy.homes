@@ -98,6 +98,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           src={propertyImages[currentImageIdx] || propertyImages[0]}
           alt={property.title}
           loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80';
+          }}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-103"
         />
 

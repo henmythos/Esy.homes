@@ -12,6 +12,12 @@ function cleanEnv(val: string | undefined, prefix: string, defaultVal: string) {
   return res;
 }
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -48,12 +54,22 @@ export default async function handler(req: any, res: any) {
       }
     });
 
-    const body = req.body;
-    const buffer = Buffer.isBuffer(body)
-      ? body
-      : typeof body === 'string'
-      ? Buffer.from(body)
-      : Buffer.from(JSON.stringify(body || {}));
+    let buffer: Buffer;
+    if (Buffer.isBuffer(req.body)) {
+      buffer = req.body;
+    } else {
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+      }
+      buffer = Buffer.concat(chunks);
+    }
+
+    if (buffer.length === 0 && req.body) {
+      if (typeof req.body === 'string') {
+        buffer = Buffer.from(req.body, 'base64');
+      }
+    }
 
     const command = new PutObjectCommand({
       Bucket: r2BucketName,
