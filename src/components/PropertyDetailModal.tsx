@@ -368,22 +368,69 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
 
               {/* Property Specs */}
-              <div className="flex items-center gap-4 py-3 border-y border-gray-100 text-xs sm:text-sm font-semibold text-gray-700 flex-wrap">
-                <span>{property.maxGuests} Guests</span>
-                <span>•</span>
-                <span>{property.bedrooms} Bedrooms</span>
-                <span>•</span>
-                <span>{property.beds} Beds</span>
-                <span>•</span>
-                <span>{property.bathrooms} Baths</span>
-              </div>
+              {property.rentalType === 'commercial_shop' ? (
+                <div className="flex items-center gap-4 py-3 border-y border-gray-100 text-xs sm:text-sm font-semibold text-gray-700 flex-wrap">
+                  <span>{property.commercialDetails?.areaSqFt || 500} Sq Ft Shop Area</span>
+                  <span>•</span>
+                  <span>{property.commercialDetails?.floorLevel || 'Ground Floor'}</span>
+                  <span>•</span>
+                  <span className="capitalize">{property.commercialDetails?.furnishedStatus?.replace('_', ' ') || 'Semi Furnished'}</span>
+                  {property.commercialDetails?.parkingAvailable && (
+                    <>
+                      <span>•</span>
+                      <span>Customer Parking</span>
+                    </>
+                  )}
+                </div>
+              ) : property.rentalType === 'pg_hostel' ? (
+                <div className="flex items-center gap-4 py-3 border-y border-gray-100 text-xs sm:text-sm font-semibold text-gray-700 flex-wrap">
+                  <span className="capitalize">{property.pgDetails?.gender || 'Mens'} PG</span>
+                  <span>•</span>
+                  <span className="capitalize">{property.pgDetails?.sharing || 'Double'} Sharing</span>
+                  <span>•</span>
+                  <span>{property.pgDetails?.foodIncluded ? '3 Meals Included' : 'No Meals'}</span>
+                  <span>•</span>
+                  <span>{property.pgDetails?.acAvailable ? 'AC Room' : 'Non-AC'}</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4 py-3 border-y border-gray-100 text-xs sm:text-sm font-semibold text-gray-700 flex-wrap">
+                  <span>{property.maxGuests} Guests</span>
+                  <span>•</span>
+                  <span>{property.bedrooms} Bedrooms</span>
+                  <span>•</span>
+                  <span>{property.beds} Beds</span>
+                  <span>•</span>
+                  <span>{property.bathrooms} Baths</span>
+                </div>
+              )}
 
-              {/* Key Highlights & PG/Deposit Specifications Card */}
+              {/* Key Highlights & Specifications Card */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col gap-3">
                 <h3 className="font-extrabold text-gray-900 text-xs uppercase tracking-wider text-rose-600">
                   Key Specifications & Rental Terms
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-semibold text-gray-800">
+                  {property.rentalType === 'commercial_shop' && (
+                    <>
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Shop Area</span>
+                        <span className="font-extrabold text-purple-900">{property.commercialDetails?.areaSqFt || 500} Sq Ft</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Floor Level</span>
+                        <span className="font-extrabold text-slate-900">{property.commercialDetails?.floorLevel || 'Ground Floor'}</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Furnishing</span>
+                        <span className="font-extrabold text-slate-900 capitalize">{property.commercialDetails?.furnishedStatus?.replace('_', ' ') || 'Semi Furnished'}</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Parking</span>
+                        <span className="font-extrabold text-emerald-700">{property.commercialDetails?.parkingAvailable ? 'Available' : 'Street Parking'}</span>
+                      </div>
+                    </>
+                  )}
+
                   {property.rentalType === 'pg_hostel' && property.pgDetails && (
                     <>
                       <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
@@ -479,19 +526,21 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 />
               </div>
 
-              {/* House Rules */}
+              {/* House Rules & Policies */}
               <div className="flex flex-col gap-2 p-4 rounded-2xl bg-gray-50 border border-gray-100">
                 <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-gray-600" /> House Rules & Check-in
+                  <AlertCircle className="w-4 h-4 text-gray-600" /> House Rules & Policies
                 </h3>
-                <div className="flex items-center gap-4 text-xs font-semibold text-gray-700">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-rose-500" /> Check-in: {property.checkInTime}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-rose-500" /> Check-out: {property.checkOutTime}
-                  </span>
-                </div>
+                {property.rentalType === 'daily_rental' && property.checkInTime && property.checkOutTime && (
+                  <div className="flex items-center gap-4 text-xs font-semibold text-gray-700">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-rose-500" /> Check-in: {property.checkInTime}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-rose-500" /> Check-out: {property.checkOutTime}
+                    </span>
+                  </div>
+                )}
                 <ul className="list-disc list-inside text-xs text-gray-600 mt-1 space-y-1">
                   {property.houseRules.map((rule, idx) => (
                     <li key={idx}>{rule}</li>
@@ -501,7 +550,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
             </div>
 
-            {/* Right Column: Direct WhatsApp / Call Booking Card & Availability Calendar */}
+            {/* Right Column: Direct WhatsApp / Call Booking Card */}
             <div className="lg:col-span-1">
               <div className="sticky top-20 bg-white rounded-3xl p-5 border border-gray-200 shadow-lg flex flex-col gap-5">
                 
@@ -529,40 +578,42 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   )}
                 </div>
 
-                {/* Date Selection Box */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-rose-500" /> Select Availability Dates
-                  </label>
-                  
-                  <div className="grid grid-cols-2 gap-2 border border-gray-200 rounded-2xl p-2 bg-gray-50/50">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold uppercase text-gray-400">Check-in</span>
-                      <input
-                        type="date"
-                        value={checkInDate}
-                        onChange={(e) => setCheckInDate(e.target.value)}
-                        className="bg-transparent text-xs font-bold text-gray-900 outline-hidden cursor-pointer"
-                      />
+                {/* Date Selection Box - ONLY for Daily Stays */}
+                {isDaily && (
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-rose-500" /> Select Availability Dates
+                    </label>
+                    
+                    <div className="grid grid-cols-2 gap-2 border border-gray-200 rounded-2xl p-2 bg-gray-50/50">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold uppercase text-gray-400">Check-in</span>
+                        <input
+                          type="date"
+                          value={checkInDate}
+                          onChange={(e) => setCheckInDate(e.target.value)}
+                          className="bg-transparent text-xs font-bold text-gray-900 outline-hidden cursor-pointer"
+                        />
+                      </div>
+                      <div className="flex flex-col border-l border-gray-200 pl-2">
+                        <span className="text-[10px] font-bold uppercase text-gray-400">Check-out</span>
+                        <input
+                          type="date"
+                          value={checkOutDate}
+                          onChange={(e) => setCheckOutDate(e.target.value)}
+                          className="bg-transparent text-xs font-bold text-gray-900 outline-hidden cursor-pointer"
+                        />
+                      </div>
                     </div>
-                    <div className="flex flex-col border-l border-gray-200 pl-2">
-                      <span className="text-[10px] font-bold uppercase text-gray-400">Check-out</span>
-                      <input
-                        type="date"
-                        value={checkOutDate}
-                        onChange={(e) => setCheckOutDate(e.target.value)}
-                        className="bg-transparent text-xs font-bold text-gray-900 outline-hidden cursor-pointer"
-                      />
-                    </div>
-                  </div>
 
-                  {/* Blocked Dates Warning */}
-                  {property.blockedDates.some((d) => d >= checkInDate && d <= checkOutDate) && (
-                    <p className="text-[11px] text-red-600 font-bold bg-red-50 p-2 rounded-xl border border-red-100 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Selected dates contain blocked days
-                    </p>
-                  )}
-                </div>
+                    {/* Blocked Dates Warning */}
+                    {property.blockedDates.some((d) => d >= checkInDate && d <= checkOutDate) && (
+                      <p className="text-[11px] text-red-600 font-bold bg-red-50 p-2 rounded-xl border border-red-100 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Selected dates contain blocked days
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Guests Selector */}
                 <div className="flex items-center justify-between border border-gray-200 rounded-2xl p-3 bg-gray-50/50">

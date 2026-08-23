@@ -517,5 +517,72 @@ export const INITIAL_PROPERTIES: Property[] = [
     checkOutTime: '11:00 AM',
     instantCallAvailable: true,
     createdAt: '2026-05-02'
+  },
+
+  // 9. COMMERCIAL SHOP - KORAMANGALA BENGALURU
+  {
+    id: 'prop-comm-1',
+    title: 'Prime Corner Retail Shop & Commercial Space in Koramangala',
+    slug: 'prime-corner-retail-shop-koramangala-bengaluru',
+    description: 'High visibility ground floor corner commercial shop on 80 Feet Road Koramangala. Ideal for retail stores, boutique cafes, clinics, or branded outlets. Includes glass frontage, high footfall, 3-phase power, and dedicated customer parking.',
+    rentalType: 'commercial_shop',
+    category: 'commercial_shop',
+    location: {
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      country: 'India',
+      address: '80 Feet Road, Koramangala 6th Block',
+      neighborhood: 'Koramangala',
+      lat: 12.9350,
+      lng: 77.6240,
+      pincode: '560095'
+    },
+    priceINR: 45000, // ₹45,000/month
+    pricePerNightUSD: 538,
+    securityDepositINR: 150000,
+    cleaningFeeUSD: 0,
+    rating: 4.92,
+    reviewCount: 18,
+    maxGuests: 10,
+    bedrooms: 0,
+    beds: 0,
+    bathrooms: 1,
+    commercialDetails: {
+      areaSqFt: 550,
+      floorLevel: 'Ground Floor',
+      furnishedStatus: 'semi_furnished',
+      suitableFor: ['Retail Shop', 'Boutique', 'Clinic', 'Showroom', 'Office'],
+      parkingAvailable: true,
+      powerBackup: true,
+    },
+    images: [
+      'https://images.unsplash.com/photo-1582037928769-181f2644ecb7?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1200&q=80'
+    ],
+    amenities: ['parking', 'security', 'workspace'],
+    nearbyPOIs: [
+      { id: 'poi-comm-1', name: 'Forum Mall Junction Bus Stop', category: 'transport', lat: 12.9340, lng: 77.6110, distanceMeters: 200 }
+    ],
+    owner: {
+      id: 'owner-comm-1',
+      name: 'Rajesh Hegde',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+      phone: '+91 98450 11223',
+      whatsapp: '919845011223',
+      responseRate: '100% within 10 minutes',
+      languages: ['Kannada', 'English', 'Hindi'],
+      joinedDate: 'January 2024',
+      isSuperhost: true
+    },
+    blockedDates: [],
+    houseRules: [
+      'Commercial Lease Agreement required for tenancy',
+      'No structural alterations without owner consent',
+      'Direct WhatsApp inquiry for lease terms and walkthrough'
+    ],
+    checkInTime: '',
+    checkOutTime: '',
+    instantCallAvailable: true,
+    createdAt: '2026-08-01'
   }
 ];

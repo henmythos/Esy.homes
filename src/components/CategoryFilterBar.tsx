@@ -1,7 +1,7 @@
 import React from 'react';
 import { SearchFilters, RentalType } from '../types';
 import { INDIAN_CITIES } from '../data/indianCities';
-import { Calendar, Users, Home, Building2, MapPin, Zap } from 'lucide-react';
+import { Calendar, Users, Home, Building2, Store, MapPin, Zap } from 'lucide-react';
 
 interface CategoryFilterBarProps {
   filters: SearchFilters;
@@ -14,6 +14,7 @@ const RENTAL_TYPES: { id: 'all' | RentalType; label: string; icon: React.FC<{ cl
   { id: 'daily_rental', label: 'Daily Stays', icon: Calendar },
   { id: 'pg_hostel', label: 'PG Hostels', icon: Users },
   { id: 'monthly_room', label: 'Monthly Rooms', icon: Building2 },
+  { id: 'commercial_shop', label: 'Commercial Shops', icon: Store },
 ];
 
 export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({

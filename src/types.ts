@@ -7,7 +7,7 @@ export interface CurrencyInfo {
   rateToUSD: number; // exchange rate relative to USD
 }
 
-export type RentalType = 'daily_rental' | 'pg_hostel' | 'monthly_room';
+export type RentalType = 'daily_rental' | 'pg_hostel' | 'monthly_room' | 'commercial_shop';
 
 export interface PgDetails {
   gender: 'mens' | 'womens' | 'unisex';
@@ -17,6 +17,15 @@ export interface PgDetails {
   acAvailable: boolean;
   noticePeriodDays?: number;
   gateClosingTime?: string;
+}
+
+export interface CommercialDetails {
+  areaSqFt?: number;
+  floorLevel?: string; // e.g. "Ground Floor", "1st Floor", "Basement"
+  furnishedStatus?: 'bare_shell' | 'semi_furnished' | 'fully_furnished';
+  suitableFor?: string[]; // e.g. ["Retail Store", "Office", "Clinic", "Showroom", "Cafe"]
+  parkingAvailable?: boolean;
+  powerBackup?: boolean;
 }
 
 export interface PointOfInterest {
@@ -53,8 +62,8 @@ export interface Property {
   title: string;
   slug: string;
   description: string;
-  rentalType: RentalType; // daily_rental, pg_hostel, monthly_room
-  category: 'daily_rental' | 'pg_hostel' | 'monthly_room' | 'apartment' | 'villa' | 'studio' | 'heritage' | 'homestay';
+  rentalType: RentalType; // daily_rental, pg_hostel, monthly_room, commercial_shop
+  category: 'daily_rental' | 'pg_hostel' | 'monthly_room' | 'commercial_shop' | 'apartment' | 'villa' | 'studio' | 'heritage' | 'homestay';
   location: {
     city: string; // e.g. "Bengaluru", "Mumbai", "Hyderabad"
     state?: string; // e.g. "Karnataka", "Maharashtra", "Telangana"
@@ -67,7 +76,7 @@ export interface Property {
   };
   priceINR: number; // ₹ Price per night or per month depending on rentalType
   pricePerNightUSD: number; // Fallback calculated rate for USD conversion
-  securityDepositINR?: number; // Deposit required for monthly or PG rentals
+  securityDepositINR?: number; // Deposit required for monthly, PG, or commercial rentals
   customRentDetails?: string; // Flexible pricing details added by the host
   cleaningFeeUSD: number;
   rating: number;
@@ -77,6 +86,7 @@ export interface Property {
   beds: number;
   bathrooms: number;
   pgDetails?: PgDetails; // Specific to PG Hostels
+  commercialDetails?: CommercialDetails; // Specific to Commercial Shops
   images: string[];
   amenities: string[]; // amenity ids
   customAmenities?: string[]; // custom string amenities added by the host

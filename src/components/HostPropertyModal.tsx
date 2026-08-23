@@ -6,7 +6,7 @@ import { LocationPickerMap } from './LocationPickerMap';
 import { convertToWebP, uploadWebPToR2, R2_CONFIG } from '../utils/imageConverter';
 import { hasReachedFreeListingLimit, isValidPremiumCoupon, PREMIUM_WHATSAPP_URL, PREMIUM_WHATSAPP_NUMBER, getListingDurationDays } from '../utils/expiration';
 import { getStoredProperties } from '../utils/storage';
-import { X, Plus, Trash2, Check, Upload, Home, MapPin, Calendar, Phone, MessageSquare, IndianRupee, Users, Building, Sparkles, Image as ImageIcon, Loader2, HardDrive, AlertTriangle, ExternalLink, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { X, Plus, Trash2, Check, Upload, Home, MapPin, Calendar, Phone, MessageSquare, IndianRupee, Users, Building, Store, Sparkles, Image as ImageIcon, Loader2, HardDrive, AlertTriangle, ExternalLink, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 interface HostPropertyModalProps {
   onSaveProperty: (property: Property) => void;
@@ -56,6 +56,13 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
   const [pgSharing, setPgSharing] = useState<'single' | 'double' | 'triple' | 'four_plus'>('double');
   const [pgFoodIncluded, setPgFoodIncluded] = useState<boolean>(true);
   const [pgAcAvailable, setPgAcAvailable] = useState<boolean>(true);
+
+  // Commercial Shop Details
+  const [commercialAreaSqFt, setCommercialAreaSqFt] = useState<number>(500);
+  const [commercialFloorLevel, setCommercialFloorLevel] = useState<string>('Ground Floor');
+  const [commercialFurnishedStatus, setCommercialFurnishedStatus] = useState<'bare_shell' | 'semi_furnished' | 'fully_furnished'>('semi_furnished');
+  const [commercialSuitableFor, setCommercialSuitableFor] = useState<string>('Retail Shop, Office, Clinic, Showroom');
+  const [commercialParking, setCommercialParking] = useState<boolean>(true);
 
   // Custom details requested by user
   const [customRentDetails, setCustomRentDetails] = useState<string>('');
@@ -261,7 +268,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
       slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       description: description.trim() || `Verified ${rentalType.replace('_', ' ')} rental in ${neighborhood}, ${city}.`,
       rentalType,
-      category: rentalType === 'pg_hostel' ? 'pg_hostel' : rentalType === 'monthly_room' ? 'monthly_room' : 'daily_rental',
+      category: rentalType,
       location: {
         city: city.trim(),
         state: stateName.trim(),
@@ -278,9 +285,9 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
       cleaningFeeUSD: 0,
       rating: 5.0,
       reviewCount: 1,
-      maxGuests: Number(maxGuests) || 1,
-      bedrooms: Number(bedrooms) || 1,
-      beds: Number(beds) || 1,
+      maxGuests: rentalType === 'commercial_shop' ? 10 : (Number(maxGuests) || 1),
+      bedrooms: rentalType === 'commercial_shop' ? 0 : (Number(bedrooms) || 1),
+      beds: rentalType === 'commercial_shop' ? 0 : (Number(beds) || 1),
       bathrooms: Number(bathrooms) || 1,
       pgDetails: rentalType === 'pg_hostel' ? {
         gender: pgGender,
@@ -290,6 +297,14 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
         acAvailable: pgAcAvailable,
         noticePeriodDays: 30,
         gateClosingTime: '11:00 PM'
+      } : undefined,
+      commercialDetails: rentalType === 'commercial_shop' ? {
+        areaSqFt: Number(commercialAreaSqFt) || 500,
+        floorLevel: commercialFloorLevel,
+        furnishedStatus: commercialFurnishedStatus,
+        suitableFor: commercialSuitableFor.split(',').map((s) => s.trim()).filter(Boolean),
+        parkingAvailable: commercialParking,
+        powerBackup: true,
       } : undefined,
       images: imageUrls,
       amenities: selectedAmenities.length > 0 ? selectedAmenities : ['wifi', 'security'],
@@ -311,8 +326,8 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
         'Direct WhatsApp contact for inquiry and key handover',
         'Govt ID verification required at check-in'
       ],
-      checkInTime: '10:00 AM',
-      checkOutTime: '12:00 PM',
+      checkInTime: rentalType === 'daily_rental' ? '10:00 AM' : '',
+      checkOutTime: rentalType === 'daily_rental' ? '12:00 PM' : '',
       instantCallAvailable: true,
       createdAt: new Date().toISOString().split('T')[0],
       isFeatured: true,
@@ -394,15 +409,15 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
               
               {/* Rental Type Chooser */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-800">Select Rental Type *</label>
-                <div className="grid grid-cols-3 gap-2">
+                <label className="text-xs font-bold text-gray-800">Select Rental Category *</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setRentalType('pg_hostel');
                       setCategory('pg_hostel');
                     }}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
+                    className={`p-2.5 rounded-2xl border text-left transition-all ${
                       rentalType === 'pg_hostel'
                         ? 'border-blue-600 bg-blue-50 text-blue-900 font-bold shadow-xs'
                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
@@ -410,7 +425,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                   >
                     <Users className="w-4 h-4 text-blue-600 mb-1" />
                     <div className="text-xs font-black">PG Hostel</div>
-                    <div className="text-[10px] text-gray-500 font-normal">Mens / Womens / Unisex</div>
+                    <div className="text-[10px] text-gray-500 font-normal">Mens / Womens</div>
                     <span className="mt-1 inline-block px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[9px] font-bold">
                       1 Year Active
                     </span>
@@ -422,7 +437,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                       setRentalType('monthly_room');
                       setCategory('monthly_room');
                     }}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
+                    className={`p-2.5 rounded-2xl border text-left transition-all ${
                       rentalType === 'monthly_room'
                         ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs'
                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
@@ -430,9 +445,29 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                   >
                     <Building className="w-4 h-4 text-emerald-600 mb-1" />
                     <div className="text-xs font-black">Monthly Room</div>
-                    <div className="text-[10px] text-gray-500 font-normal">Furnished 1BHK / Flat</div>
+                    <div className="text-[10px] text-gray-500 font-normal">Flat / 1BHK Room</div>
                     <span className="mt-1 inline-block px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold">
                       90 Days Active
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRentalType('commercial_shop');
+                      setCategory('commercial_shop');
+                    }}
+                    className={`p-2.5 rounded-2xl border text-left transition-all ${
+                      rentalType === 'commercial_shop'
+                        ? 'border-purple-600 bg-purple-50 text-purple-900 font-bold shadow-xs'
+                        : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Store className="w-4 h-4 text-purple-600 mb-1" />
+                    <div className="text-xs font-black">Commercial Shop</div>
+                    <div className="text-[10px] text-gray-500 font-normal">Retail / Office</div>
+                    <span className="mt-1 inline-block px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 text-[9px] font-bold">
+                      1 Year Active
                     </span>
                   </button>
 
@@ -442,14 +477,14 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                       setRentalType('daily_rental');
                       setCategory('daily_rental');
                     }}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
+                    className={`p-2.5 rounded-2xl border text-left transition-all ${
                       rentalType === 'daily_rental'
                         ? 'border-rose-600 bg-rose-50 text-rose-900 font-bold shadow-xs'
                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     <Calendar className="w-4 h-4 text-rose-600 mb-1" />
-                    <div className="text-xs font-black">Daily Homestay</div>
+                    <div className="text-xs font-black">Daily Stay</div>
                     <div className="text-[10px] text-gray-500 font-normal">Per Night Stay</div>
                     <span className="mt-1 inline-block px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[9px] font-bold">
                       1 Year Active
@@ -623,67 +658,142 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
                 </div>
               </div>
 
-              {/* Property Capacity & Layout Specs */}
-              <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-3">
-                <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">Property Details & Capacity</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div>
-                    <label className="font-bold text-gray-700 block mb-1">Bedrooms</label>
-                    <select
-                      value={bedrooms}
-                      onChange={(e) => setBedrooms(Number(e.target.value))}
-                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
-                    >
-                      <option value={1}>1 Bedroom / Room</option>
-                      <option value={2}>2 Bedrooms (2BHK)</option>
-                      <option value={3}>3 Bedrooms (3BHK)</option>
-                      <option value={4}>4+ Bedrooms</option>
-                    </select>
-                  </div>
+              {/* Property Capacity & Layout Specs - Hide for Commercial Shop */}
+              {rentalType !== 'commercial_shop' && (
+                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-3">
+                  <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">Property Details & Capacity</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Bedrooms</label>
+                      <select
+                        value={bedrooms}
+                        onChange={(e) => setBedrooms(Number(e.target.value))}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                      >
+                        <option value={1}>1 Bedroom / Room</option>
+                        <option value={2}>2 Bedrooms (2BHK)</option>
+                        <option value={3}>3 Bedrooms (3BHK)</option>
+                        <option value={4}>4+ Bedrooms</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="font-bold text-gray-700 block mb-1">Beds</label>
-                    <select
-                      value={beds}
-                      onChange={(e) => setBeds(Number(e.target.value))}
-                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
-                    >
-                      <option value={1}>1 Bed</option>
-                      <option value={2}>2 Beds</option>
-                      <option value={3}>3 Beds</option>
-                      <option value={4}>4+ Beds</option>
-                    </select>
-                  </div>
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Beds</label>
+                      <select
+                        value={beds}
+                        onChange={(e) => setBeds(Number(e.target.value))}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                      >
+                        <option value={1}>1 Bed</option>
+                        <option value={2}>2 Beds</option>
+                        <option value={3}>3 Beds</option>
+                        <option value={4}>4+ Beds</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="font-bold text-gray-700 block mb-1">Bathrooms</label>
-                    <select
-                      value={bathrooms}
-                      onChange={(e) => setBathrooms(Number(e.target.value))}
-                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
-                    >
-                      <option value={1}>1 Bathroom</option>
-                      <option value={2}>2 Bathrooms</option>
-                      <option value={3}>3+ Bathrooms</option>
-                    </select>
-                  </div>
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Bathrooms</label>
+                      <select
+                        value={bathrooms}
+                        onChange={(e) => setBathrooms(Number(e.target.value))}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                      >
+                        <option value={1}>1 Bathroom</option>
+                        <option value={2}>2 Bathrooms</option>
+                        <option value={3}>3+ Bathrooms</option>
+                      </select>
+                    </div>
 
-                  <div>
-                    <label className="font-bold text-gray-700 block mb-1">Max Guests</label>
-                    <select
-                      value={maxGuests}
-                      onChange={(e) => setMaxGuests(Number(e.target.value))}
-                      className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
-                    >
-                      <option value={1}>1 Guest / Tenant</option>
-                      <option value={2}>2 Guests</option>
-                      <option value={3}>3 Guests</option>
-                      <option value={4}>4 Guests</option>
-                      <option value={6}>6+ Guests</option>
-                    </select>
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Max Guests</label>
+                      <select
+                        value={maxGuests}
+                        onChange={(e) => setMaxGuests(Number(e.target.value))}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium"
+                      >
+                        <option value={1}>1 Guest / Tenant</option>
+                        <option value={2}>2 Guests</option>
+                        <option value={3}>3 Guests</option>
+                        <option value={4}>4 Guests</option>
+                        <option value={6}>6+ Guests</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Commercial Shop Specific Details */}
+              {rentalType === 'commercial_shop' && (
+                <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-3">
+                  <h4 className="text-xs font-black text-purple-900 uppercase tracking-wider">Commercial Shop Details</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Shop Area (Sq Ft) *</label>
+                      <input
+                        type="number"
+                        min={50}
+                        required
+                        placeholder="e.g. 550"
+                        value={commercialAreaSqFt || ''}
+                        onChange={(e) => setCommercialAreaSqFt(Number(e.target.value))}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white font-bold text-purple-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Floor Level</label>
+                      <select
+                        value={commercialFloorLevel}
+                        onChange={(e) => setCommercialFloorLevel(e.target.value)}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium text-gray-800"
+                      >
+                        <option value="Ground Floor">Ground Floor</option>
+                        <option value="1st Floor">1st Floor</option>
+                        <option value="2nd Floor">2nd Floor</option>
+                        <option value="Basement">Basement</option>
+                        <option value="Full Building">Full Building</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Furnishing Status</label>
+                      <select
+                        value={commercialFurnishedStatus}
+                        onChange={(e) => setCommercialFurnishedStatus(e.target.value as any)}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white font-medium text-gray-800"
+                      >
+                        <option value="semi_furnished">Semi Furnished</option>
+                        <option value="fully_furnished">Fully Furnished</option>
+                        <option value="bare_shell">Bare Shell / Unfurnished</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                    <div>
+                      <label className="font-bold text-gray-700 block mb-1">Suitable Business Uses</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Retail Shop, Boutique, Office, Clinic, Showroom"
+                        value={commercialSuitableFor}
+                        onChange={(e) => setCommercialSuitableFor(e.target.value)}
+                        className="w-full p-2 rounded-xl border border-gray-300 bg-white"
+                      />
+                    </div>
+                    <div className="flex items-center gap-4 sm:pt-5">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-800">
+                        <input
+                          type="checkbox"
+                          checked={commercialParking}
+                          onChange={(e) => setCommercialParking(e.target.checked)}
+                          className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                        />
+                        Dedicated Customer Parking Available
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* PG Specific options */}
               {rentalType === 'pg_hostel' && (

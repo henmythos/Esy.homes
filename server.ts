@@ -178,6 +178,9 @@ async function startServer() {
 
   // API Routes
   app.get("/api/properties", async (req, res) => {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     try {
       const result = await db.execute("SELECT data_json FROM properties");
       const properties = result.rows.map(r => JSON.parse(r.data_json as string));

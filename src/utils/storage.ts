@@ -20,10 +20,16 @@ export const DEFAULT_SELF_HOST_CONFIG: SelfHostConfig = {
 
 export async function getStoredProperties(): Promise<Property[]> {
   try {
-    const res = await fetch(getApiUrl('/api/properties'));
+    const res = await fetch(getApiUrl('/api/properties'), {
+      cache: 'no-store',
+      headers: {
+        'Pragma': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      }
+    });
     if (res.ok) {
       const properties = await res.json();
-      if (Array.isArray(properties)) {
+      if (Array.isArray(properties) && properties.length > 0) {
         return filterActiveProperties(properties);
       }
     }

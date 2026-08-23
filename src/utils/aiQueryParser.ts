@@ -11,7 +11,9 @@ export function parseNaturalLanguageQuery(query: string, currentFilters: SearchF
   const newFilters: SearchFilters = { ...currentFilters, destination: query };
 
   // Detect Rental Type & Targeted High-Value Keywords
-  if (/\b(pg|hostel|paying guest|pgs|co-living|coliving)\b/i.test(q)) {
+  if (/\b(commercial|shop|store|office|retail|showroom|warehouse|commercial space)\b/i.test(q)) {
+    newFilters.rentalType = 'commercial_shop';
+  } else if (/\b(pg|hostel|paying guest|pgs|co-living|coliving)\b/i.test(q)) {
     newFilters.rentalType = 'pg_hostel';
   } else if (/\b(daily|homestay|resort|villa|night|hotel|holiday|vacation|oyo|oyo rooms|independent room|independent room stays)\b/i.test(q)) {
     newFilters.rentalType = 'daily_rental';
@@ -44,7 +46,8 @@ export function extractLocationTokens(query: string): string[] {
     'female', 'ladies', 'unisex', 'coed', 'coliving', 'daily', 'monthly', 'rent', 'rental',
     'flat', 'flats', 'apartment', 'apartments', 'room', 'rooms', '1bhk', '2bhk', '3bhk',
     'house', 'houses', 'stay', 'stays', 'homestay', 'villa', 'under', 'below', 'nearby',
-    'free', 'listing', 'property', 'oyo', 'independent'
+    'free', 'listing', 'property', 'oyo', 'independent', 'commercial', 'shop', 'shops',
+    'store', 'stores', 'office', 'offices', 'retail', 'showroom'
   ]);
 
   const rawWords = query.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/);

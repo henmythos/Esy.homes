@@ -71,6 +71,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           bg: 'bg-blue-600 text-white',
         };
       }
+      case 'commercial_shop':
+        return {
+          label: 'Commercial Shop',
+          bg: 'bg-purple-600 text-white',
+        };
       case 'monthly_room':
         return {
           label: 'Monthly Room',
@@ -212,12 +217,26 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </span>
         </div>
 
-        {/* PG or Monthly Specifics */}
-        {property.pgDetails && (
+        {/* PG or Commercial Specifics */}
+        {property.rentalType === 'pg_hostel' && property.pgDetails && (
           <div className="text-[11px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-100 line-clamp-1 flex items-center gap-1">
             <span>{property.pgDetails.foodIncluded ? 'Food Included' : 'Self Cooking'}</span>
             <span>•</span>
             <span>{property.pgDetails.acAvailable ? 'AC Room' : 'Non-AC'}</span>
+          </div>
+        )}
+
+        {property.rentalType === 'commercial_shop' && (
+          <div className="text-[11px] text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded border border-purple-100 line-clamp-1 flex items-center gap-1">
+            <span>{property.commercialDetails?.areaSqFt ? `${property.commercialDetails.areaSqFt} sq ft` : 'Shop Space'}</span>
+            <span>•</span>
+            <span>{property.commercialDetails?.floorLevel || 'Ground Floor'}</span>
+            {property.commercialDetails?.parkingAvailable && (
+              <>
+                <span>•</span>
+                <span>Parking</span>
+              </>
+            )}
           </div>
         )}
 
