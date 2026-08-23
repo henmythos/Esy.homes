@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { SelfHostConfig } from '../types';
+import { getApiUrl } from '../utils/apiConfig';
 import { 
-  X, Database, Cloud, Zap, Shield, Github, Globe, Check, Copy, Code, Sparkles, RefreshCw, Terminal
+  X, Database, Cloud, Zap, Shield, Github, Globe, Check, Copy, Code, Sparkles, RefreshCw, Terminal, Server, HardDrive, Key
 } from 'lucide-react';
 
 interface SelfHostPanelProps {
@@ -290,7 +291,7 @@ CREATE TABLE IF NOT EXISTS availability_calendar (
                     type="button"
                     onClick={async () => {
                       try {
-                        const res = await fetch('/api/r2-status');
+                        const res = await fetch(getApiUrl('/api/r2-status'));
                         const data = await res.json();
                         if (data.connected) {
                           alert(`✅ Cloudflare R2 Connected Successfully!\nBucket: ${data.bucket}\nPublic Domain: ${data.publicDomain}`);

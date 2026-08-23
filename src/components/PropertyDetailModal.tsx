@@ -130,6 +130,14 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     setTimeout(() => setIsCopiedLink(false), 2500);
   };
 
+  const calculateNights = () => {
+    if (!checkInDate || !checkOutDate) return 1;
+    const start = new Date(checkInDate).getTime();
+    const end = new Date(checkOutDate).getTime();
+    const diff = Math.ceil((end - start) / (1000 * 3600 * 24));
+    return diff > 0 ? diff : 1;
+  };
+
   // Price calculation in INR
   const priceINR = property.priceINR || (property.pricePerNightUSD * 83.5);
   const nights = calculateNights();

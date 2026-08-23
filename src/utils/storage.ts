@@ -1,6 +1,7 @@
 import { Property, SelfHostConfig } from '../types';
 import { INITIAL_PROPERTIES } from '../data/mockProperties';
 import { filterActiveProperties } from './expiration';
+import { getApiUrl } from './apiConfig';
 
 const PROPERTIES_KEY = 'esy_homes_properties_v2_inr';
 const WISHLIST_KEY = 'esy_homes_wishlist_v1';
@@ -8,7 +9,7 @@ const SELF_HOST_CONFIG_KEY = 'esy_homes_selfhost_config_v1';
 
 export const DEFAULT_SELF_HOST_CONFIG: SelfHostConfig = {
   tursoDatabaseUrl: 'libsql://ezy-homes-vercel-icfg-cnxx2242ugtirkjfrpb3fzwu.aws-ap-south-1.turso.io',
-  tursoAuthToken: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODU5OTA3OTUsImlkIjoiMDE5ZmQ1NTgtY2UwMS03ZTM1LWJjZmYtYmQwMWNmNmYxYmY5Iiwia2lkIjoiRHFFM252OEVEWXp6Z1hrMXQ5ODBINXR5MmJNUVpOOWcxMFF2RnhLM3BJcyIsInJpZCI6IjBlMzE0YzY3LThkYWItNDM2Ni1iOTBkLWYzYTc3M2I5NzRmNiJ9.qRocAor7xXLZaX_mpwNegNMq-3ukrzFzVl7hqrhPhQx10xchY2nZ3AJzYEawh5H9fQi-p4CJrTKEtfTe5ovxAg',
+  tursoAuthToken: '', // Server-side environment variable TURSO_AUTH_TOKEN is used for database auth
   cloudflareR2Bucket: 'ezyhomes-images',
   cloudflareR2AccountId: '3b25d6fc00d328f896be8a3382324774',
   cloudflareR2PublicDomain: 'https://pub-d98afd66f3284a9c98a71404da771d04.r2.dev',
@@ -19,7 +20,7 @@ export const DEFAULT_SELF_HOST_CONFIG: SelfHostConfig = {
 
 export async function getStoredProperties(): Promise<Property[]> {
   try {
-    const res = await fetch('/api/properties');
+    const res = await fetch(getApiUrl('/api/properties'));
     if (res.ok) {
       const properties = await res.json();
       if (Array.isArray(properties)) {
@@ -33,7 +34,7 @@ export async function getStoredProperties(): Promise<Property[]> {
 }
 
 export async function savePropertyToStore(property: Property): Promise<Property[]> {
-  const res = await fetch('/api/properties', {
+  const res = await fetch(getApiUrl('/api/properties'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(property)
@@ -51,7 +52,7 @@ export async function savePropertyToStore(property: Property): Promise<Property[
 
 export async function deletePropertyFromStore(id: string): Promise<Property[]> {
   try {
-    const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+    const res = await fetch(getApiUrl(`/api/properties/${id}`), { method: 'DELETE' });
     if (!res.ok) {
       console.error('Failed to delete property from server database:', res.statusText);
     }

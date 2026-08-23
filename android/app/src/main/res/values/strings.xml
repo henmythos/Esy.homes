@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ezy.homes</string>
+    <string name="title_activity_main">ezy.homes</string>
+    <string name="package_name">homes.ezy.app</string>
+    <string name="custom_url_scheme">homes.ezy.app</string>
+</resources>

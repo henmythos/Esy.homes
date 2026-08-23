@@ -1,4 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { Component, useState, useMemo, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { Currency, Property, SearchFilters, SelfHostConfig } from './types';
 import { getStoredProperties, savePropertyToStore, deletePropertyFromStore, getWishlistIds, toggleWishlistId, getSelfHostConfig, saveSelfHostConfig } from './utils/storage';
 import { Header } from './components/Header';
@@ -16,11 +20,20 @@ import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { parseNaturalLanguageQuery, extractLocationTokens } from './utils/aiQueryParser';
 import { Heart, Search, MapPin, MessageSquare, Building2 } from 'lucide-react';
 
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = {
+    hasError: false,
+    error: null,
+  };
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
@@ -31,7 +44,11 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 
   render() {
-    if (this.state.hasError) {
+    const state = (this as unknown as { state: ErrorBoundaryState; props: ErrorBoundaryProps; setState: any }).state;
+    const props = (this as unknown as { state: ErrorBoundaryState; props: ErrorBoundaryProps; setState: any }).props;
+    const setState = (this as unknown as { state: ErrorBoundaryState; props: ErrorBoundaryProps; setState: any }).setState.bind(this);
+
+    if (state.hasError) {
       return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
           <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mb-4 border border-rose-200 shadow-sm">
@@ -43,7 +60,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
           </p>
           <button
             onClick={() => {
-              this.setState({ hasError: false, error: null });
+              setState({ hasError: false, error: null });
               window.location.href = '/';
             }}
             className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-md"
@@ -53,7 +70,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
         </div>
       );
     }
-    return this.props.children;
+    return props.children;
   }
 }
 
@@ -114,6 +131,59 @@ function MainAppContent() {
     }
     loadData();
   }, []);
+
+  // Capacitor Native Android Back Button & Native Bar Config
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+    StatusBar.setBackgroundColor({ color: '#0f172a' }).catch(() => {});
+    Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
+
+    const backListener = CapacitorApp.addListener('backButton', () => {
+      // 1. Close Property Detail Modal
+      if (selectedProperty) {
+        setSelectedProperty(null);
+        return;
+      }
+      // 2. Close Host Property Modal
+      if (isHostModalOpen) {
+        setIsHostModalOpen(false);
+        return;
+      }
+      // 3. Close My Listings Modal
+      if (isMyListingsModalOpen) {
+        setIsMyListingsModalOpen(false);
+        return;
+      }
+      // 4. Close Self Host Settings Panel
+      if (isSelfHostModalOpen) {
+        setIsSelfHostModalOpen(false);
+        return;
+      }
+      // 5. Close Sitemap Directory Modal
+      if (isSitemapModalOpen) {
+        setIsSitemapModalOpen(false);
+        return;
+      }
+      // 6. Return to Explore Tab if in Wishlist Tab
+      if (activeMobileTab === 'wishlist') {
+        setActiveMobileTab('explore');
+        return;
+      }
+      // 7. Reset active destination search filter if set
+      if (filters.destination || filters.city) {
+        setFilters(prev => ({ ...prev, destination: '', city: '' }));
+        return;
+      }
+      // 8. Otherwise, exit application safely
+      CapacitorApp.exitApp();
+    });
+
+    return () => {
+      backListener.then(h => h.remove()).catch(() => {});
+    };
+  }, [selectedProperty, isHostModalOpen, isMyListingsModalOpen, isSelfHostModalOpen, isSitemapModalOpen, activeMobileTab, filters]);
 
   // Direct Link Deep Linking (?property=p-1) for Google Maps & shared URLs
   useEffect(() => {

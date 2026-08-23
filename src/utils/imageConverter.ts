@@ -6,6 +6,7 @@
  */
 
 import { getSelfHostConfig } from './storage';
+import { getApiUrl } from './apiConfig';
 
 export const R2_CONFIG = {
   bucketName: 'ezyhomes-images',
@@ -133,7 +134,8 @@ export async function uploadWebPToR2(
 
   // 1. Primary Method: Upload via server proxy (/api/upload-direct)
   try {
-    const res = await fetch(`/api/upload-direct?fileName=${encodeURIComponent(webpResult.fileName)}`, {
+    const uploadApiEndpoint = getApiUrl(`/api/upload-direct?fileName=${encodeURIComponent(webpResult.fileName)}`);
+    const res = await fetch(uploadApiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'image/webp',
@@ -159,7 +161,8 @@ export async function uploadWebPToR2(
 
   // 2. Secondary Method: Try presigned URL directly from browser
   try {
-    const presignRes = await fetch(`/api/upload-url?fileName=${encodeURIComponent(webpResult.fileName)}&contentType=image/webp`);
+    const presignApiEndpoint = getApiUrl(`/api/upload-url?fileName=${encodeURIComponent(webpResult.fileName)}&contentType=image/webp`);
+    const presignRes = await fetch(presignApiEndpoint);
     if (presignRes.ok) {
       const { uploadUrl } = await presignRes.json();
       
