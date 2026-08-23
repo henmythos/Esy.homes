@@ -33,17 +33,17 @@ export async function getStoredProperties(): Promise<Property[]> {
 }
 
 export async function savePropertyToStore(property: Property): Promise<Property[]> {
-  try {
-    const res = await fetch('/api/properties', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(property)
-    });
-    if (!res.ok) {
-      console.error('Failed to save property to server database:', res.statusText);
-    }
-  } catch (e) {
-    console.error('API save error:', e);
+  const res = await fetch('/api/properties', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(property)
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    const msg = errData.error || errData.details || `Server returned HTTP ${res.status}`;
+    console.error('Failed to save property to live server database:', msg);
+    throw new Error(`Live Database Error: ${msg}`);
   }
 
   return await getStoredProperties();

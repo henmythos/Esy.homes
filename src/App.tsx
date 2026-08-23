@@ -182,13 +182,14 @@ function MainAppContent() {
 
   // Handle Adding New Host Property
   const handleSaveNewProperty = async (newProperty: Property) => {
-    setIsHostModalOpen(false);
     try {
       const updatedList = await savePropertyToStore(newProperty);
       setProperties(updatedList);
+      setIsHostModalOpen(false);
       handleSelectProperty(newProperty);
-    } catch (e) {
-      console.error("Failed to save property:", e);
+    } catch (e: any) {
+      console.error("Failed to save property to Turso database:", e);
+      alert(`⚠️ Could not save listing to live server: ${e?.message || 'Database connection error'}`);
     }
   };
 

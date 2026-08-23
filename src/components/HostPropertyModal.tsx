@@ -182,15 +182,30 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
     }
   };
 
+  const handleNextStep = () => {
+    setUploadError('');
+    if (step === 1) {
+      if (!title.trim()) {
+        setUploadError('⚠️ Property Title is required before moving to Step 2.');
+        return;
+      }
+      if (!city.trim() || !neighborhood.trim()) {
+        setUploadError('⚠️ City and Neighborhood are required before moving to Step 2.');
+        return;
+      }
+    }
+    if (step === 2) {
+      if (!priceINR || Number(priceINR) <= 0) {
+        setUploadError('⚠️ Rent Rate (₹) is required. Please enter your rent rate before proceeding.');
+        return;
+      }
+    }
+    setStep(step + 1);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setUploadError('');
-
-    if (imageUrls.length === 0) {
-      setUploadError('⚠️ At least 1 property photo is MANDATORY for listing on ezy.homes. Please upload or add a photo.');
-      setStep(3);
-      return;
-    }
 
     if (!title.trim()) {
       setUploadError('Property title is required.');
@@ -204,17 +219,28 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
       return;
     }
 
+    if (!priceINR || Number(priceINR) <= 0) {
+      setUploadError('⚠️ Rent Rate (₹) is mandatory. Please enter your rent rate on Step 2.');
+      setStep(2);
+      return;
+    }
+
+    if (imageUrls.length === 0) {
+      setUploadError('⚠️ At least 1 property photo is MANDATORY for listing on ezy.homes. Please upload or add a photo on Step 3.');
+      setStep(3);
+      return;
+    }
+
     if (!ownerName.trim() || !whatsapp.trim()) {
       setUploadError('Host Name and WhatsApp Number are required on Step 3.');
+      setStep(3);
       return;
     }
 
     const isPremiumPass = isValidPremiumCoupon(couponCode);
 
-    const finalPriceINR = Number(priceINR) > 0 
-      ? Number(priceINR) 
-      : rentalType === 'daily_rental' ? 2500 : rentalType === 'pg_hostel' ? 8500 : 18000;
-
+    // Exact Owner Set Price (No random fallback)
+    const finalPriceINR = Number(priceINR);
     const priceUSD = Math.round(finalPriceINR / 83.5);
 
     const newProperty: Property = {
@@ -1054,7 +1080,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({
             {step < 3 ? (
               <button
                 type="button"
-                onClick={() => setStep(step + 1)}
+                onClick={handleNextStep}
                 className="px-6 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-md shadow-rose-500/20"
               >
                 Next Step →

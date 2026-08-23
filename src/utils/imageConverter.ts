@@ -180,17 +180,7 @@ export async function uploadWebPToR2(
     console.warn('Presigned URL fetch failed:', err);
   }
 
-  // If R2 upload server endpoint failed, throw clear error so user knows R2 connection failed
+  // If R2 upload failed, throw clear error so user knows R2 connection or server endpoint failed
   if (onProgress) onProgress(100);
-
-  // If WebP blob is small enough (<300KB), return DataURL with warning if fallback needed
-  if (webpResult.blob.size < 400000) {
-    console.warn(`R2 upload failed (${lastErrorMsg}), falling back to compressed WebP data URL`);
-    return {
-      r2Url: webpResult.dataUrl,
-      webpResult,
-    };
-  }
-
-  throw new Error(`Cloudflare R2 image upload failed: ${lastErrorMsg || 'Server endpoint unreachable'}`);
+  throw new Error(`Cloudflare R2 image upload failed: ${lastErrorMsg || 'Server R2 upload endpoint unreachable. Please verify R2 credentials.'}`);
 }
