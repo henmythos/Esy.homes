@@ -181,8 +181,20 @@ function MainAppContent() {
       CapacitorApp.exitApp();
     });
 
+    // Capacitor App Foreground Listener: Re-fetch latest live properties when returning to app
+    const stateListener = CapacitorApp.addListener('appStateChange', (state) => {
+      if (state.isActive) {
+        getStoredProperties().then((latest) => {
+          if (latest && latest.length > 0) {
+            setProperties(latest);
+          }
+        });
+      }
+    });
+
     return () => {
       backListener.then(h => h.remove()).catch(() => {});
+      stateListener.then(h => h.remove()).catch(() => {});
     };
   }, [selectedProperty, isHostModalOpen, isMyListingsModalOpen, isSelfHostModalOpen, isSitemapModalOpen, activeMobileTab, filters]);
 

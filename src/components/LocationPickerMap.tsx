@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPin, Navigation, Search, Check, Crosshair, AlertCircle, Loader2 } from 'lucide-react';
+import { getCurrentUserLocation } from '../utils/locationService';
 
 interface LocationPickerMapProps {
   lat: number;
@@ -128,39 +129,27 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   }, [lat, lng]);
 
   // Handle GPS Auto Detect
-  const handleGPSDetect = () => {
-    if (!navigator.geolocation) {
-      setSearchError('Geolocation is not supported by your browser.');
-      return;
-    }
-
+  const handleGPSDetect = async () => {
     setIsLocatingGPS(true);
     setSearchError(null);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const gpsLat = Number(position.coords.latitude.toFixed(6));
-        const gpsLng = Number(position.coords.longitude.toFixed(6));
+    try {
+      const pos = await getCurrentUserLocation();
+      const gpsLat = pos.lat;
+      const gpsLng = pos.lng;
 
-        if (leafletMap.current && markerRef.current) {
-          markerRef.current.setLatLng([gpsLat, gpsLng]);
-          leafletMap.current.setView([gpsLat, gpsLng], 17, { animate: true });
-        }
-
-        onChangeLocation(gpsLat, gpsLng, `GPS Pin (${gpsLat}, ${gpsLng})`);
-        setIsLocatingGPS(false);
-      },
-      (err) => {
-        console.warn('GPS location error:', err);
-        setSearchError('Could not fetch exact GPS location. Please enable location permissions or click manually on the map.');
-        setIsLocatingGPS(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+      if (leafletMap.current && markerRef.current) {
+        markerRef.current.setLatLng([gpsLat, gpsLng]);
+        leafletMap.current.setView([gpsLat, gpsLng], 17, { animate: true });
       }
-    );
+
+      onChangeLocation(gpsLat, gpsLng, `GPS Pin (${gpsLat}, ${gpsLng})`);
+    } catch (err: any) {
+      console.warn('GPS location error:', err);
+      setSearchError(err?.message || 'Location access is unavailable. Please enable location permission or select your city manually.');
+    } finally {
+      setIsLocatingGPS(false);
+    }
   };
 
   // Address Geocode Search via Nominatim

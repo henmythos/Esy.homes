@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { PointOfInterest } from '../types';
 import { MapPin, Navigation, Compass, Utensils, ShoppingBag, Bus, Sun, Crosshair, Stethoscope, Loader2, ExternalLink, Car, Footprints } from 'lucide-react';
+import { getCurrentUserLocation } from '../utils/locationService';
 
 interface OpenStreetMapProps {
   lat: number;
@@ -250,37 +251,26 @@ export const OpenStreetMap: React.FC<OpenStreetMapProps> = ({
     );
   };
 
-  const handleEstimateDistance = () => {
-    if (!navigator.geolocation) {
-      setLocatingError('Geolocation is not supported by your browser.');
-      return;
-    }
-
+  const handleEstimateDistance = async () => {
     setIsLocatingUser(true);
     setLocatingError(null);
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const uLat = position.coords.latitude;
-        const uLng = position.coords.longitude;
+    try {
+      const pos = await getCurrentUserLocation();
+      const uLat = pos.lat;
+      const uLng = pos.lng;
 
-        setUserLocation({ lat: uLat, lng: uLng });
-        const res = calculateHaversineDistance(uLat, uLng, lat, lng);
-        setDistanceInfo(res);
+      setUserLocation({ lat: uLat, lng: uLng });
+      const res = calculateHaversineDistance(uLat, uLng, lat, lng);
+      setDistanceInfo(res);
 
-        drawUserLocationOnMap(uLat, uLng);
-        setIsLocatingUser(false);
-      },
-      (err) => {
-        console.warn('Distance locate error:', err);
-        setLocatingError('Could not obtain current location. Please allow location permissions in your browser.');
-        setIsLocatingUser(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-      }
-    );
+      drawUserLocationOnMap(uLat, uLng);
+    } catch (err: any) {
+      console.warn('Distance locate error:', err);
+      setLocatingError(err?.message || 'Location access is unavailable. Please enable location permission or select your city manually.');
+    } finally {
+      setIsLocatingUser(false);
+    }
   };
 
   return (

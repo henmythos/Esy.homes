@@ -20,7 +20,8 @@ export const DEFAULT_SELF_HOST_CONFIG: SelfHostConfig = {
 
 export async function getStoredProperties(): Promise<Property[]> {
   try {
-    const res = await fetch(getApiUrl('/api/properties'), {
+    const url = getApiUrl(`/api/properties?t=${Date.now()}`);
+    const res = await fetch(url, {
       cache: 'no-store',
       headers: {
         'Pragma': 'no-cache',
