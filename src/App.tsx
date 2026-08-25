@@ -15,11 +15,12 @@ import { HostPropertyModal } from './components/HostPropertyModal';
 import { MyListingsModal } from './components/MyListingsModal';
 import { SelfHostPanel } from './components/SelfHostPanel';
 import { SitemapDirectoryModal } from './components/SitemapDirectoryModal';
+import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { SEOStructuredData } from './components/SEOStructuredData';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { parseNaturalLanguageQuery, extractLocationTokens } from './utils/aiQueryParser';
-import { Heart, Search, MapPin, MessageSquare, Building2 } from 'lucide-react';
+import { Heart, Search, MapPin, MessageSquare, Building2, ShieldCheck } from 'lucide-react';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -97,7 +98,19 @@ function MainAppContent() {
   const [isMyListingsModalOpen, setIsMyListingsModalOpen] = useState<boolean>(false);
   const [isSelfHostModalOpen, setIsSelfHostModalOpen] = useState<boolean>(false);
   const [isSitemapModalOpen, setIsSitemapModalOpen] = useState<boolean>(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
   const [activeMobileTab, setActiveMobileTab] = useState<'explore' | 'wishlist'>('explore');
+
+  // Check URL path on initial load for /privacy-policy route
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      const params = new URLSearchParams(window.location.search);
+      if (pathname === '/privacy-policy' || params.get('privacy') === 'true') {
+        setIsPrivacyModalOpen(true);
+      }
+    }
+  }, []);
 
   // Search & Filter State
   const [filters, setFilters] = useState<SearchFilters>({
@@ -142,42 +155,50 @@ function MainAppContent() {
     Keyboard.setResizeMode({ mode: KeyboardResize.Body }).catch(() => {});
 
     const backListener = CapacitorApp.addListener('backButton', () => {
-      // 1. Close Property Detail Modal
+      // 1. Close Privacy Policy Modal
+      if (isPrivacyModalOpen) {
+        setIsPrivacyModalOpen(false);
+        if (window.location.pathname === '/privacy-policy') {
+          window.history.pushState({}, '', '/');
+        }
+        return;
+      }
+      // 2. Close Property Detail Modal
       if (selectedProperty) {
         setSelectedProperty(null);
         return;
       }
-      // 2. Close Host Property Modal
+      // 3. Close Host Property Modal
       if (isHostModalOpen) {
         setIsHostModalOpen(false);
         return;
       }
-      // 3. Close My Listings Modal
+      // 4. Close My Listings Modal
       if (isMyListingsModalOpen) {
         setIsMyListingsModalOpen(false);
         return;
       }
-      // 4. Close Self Host Settings Panel
+      // 5. Close Self Host Settings Panel
       if (isSelfHostModalOpen) {
         setIsSelfHostModalOpen(false);
         return;
       }
-      // 5. Close Sitemap Directory Modal
+      // 6. Close Sitemap Directory Modal
       if (isSitemapModalOpen) {
         setIsSitemapModalOpen(false);
         return;
       }
-      // 6. Return to Explore Tab if in Wishlist Tab
+      // 7. Return to Explore Tab if in Wishlist Tab
       if (activeMobileTab === 'wishlist') {
         setActiveMobileTab('explore');
         return;
       }
-      // 7. Reset active destination search filter if set
+      // 8. Reset active destination search filter if set
       if (filters.destination || filters.city) {
         setFilters(prev => ({ ...prev, destination: '', city: '' }));
         return;
       }
-      // 8. Otherwise, exit application safely
+      // 9. Otherwise, exit application safely
       CapacitorApp.exitApp();
     });
 
@@ -196,7 +217,7 @@ function MainAppContent() {
       backListener.then(h => h.remove()).catch(() => {});
       stateListener.then(h => h.remove()).catch(() => {});
     };
-  }, [selectedProperty, isHostModalOpen, isMyListingsModalOpen, isSelfHostModalOpen, isSitemapModalOpen, activeMobileTab, filters]);
+  }, [selectedProperty, isHostModalOpen, isMyListingsModalOpen, isSelfHostModalOpen, isSitemapModalOpen, isPrivacyModalOpen, activeMobileTab, filters]);
 
   // Direct Link Deep Linking (?property=p-1) for Google Maps & shared URLs
   useEffect(() => {
@@ -215,6 +236,11 @@ function MainAppContent() {
   // Listen to browser Back / Forward buttons for modal state
   useEffect(() => {
     const handlePopState = () => {
+      if (window.location.pathname === '/privacy-policy') {
+        setIsPrivacyModalOpen(true);
+      } else {
+        setIsPrivacyModalOpen(false);
+      }
       const params = new URLSearchParams(window.location.search);
       const pid = params.get('property') || params.get('p') || params.get('id');
       if (pid && properties.length > 0) {
@@ -228,6 +254,20 @@ function MainAppContent() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [properties]);
+
+  const handleOpenPrivacyPolicy = () => {
+    setIsPrivacyModalOpen(true);
+    if (typeof window !== 'undefined' && window.location.pathname !== '/privacy-policy') {
+      window.history.pushState({}, '', '/privacy-policy');
+    }
+  };
+
+  const handleClosePrivacyPolicy = () => {
+    setIsPrivacyModalOpen(false);
+    if (typeof window !== 'undefined' && window.location.pathname === '/privacy-policy') {
+      window.history.pushState({}, '', '/');
+    }
+  };
 
   // Handle Property Selection with Deep Link URL state sync
   const handleSelectProperty = (property: Property | null) => {
@@ -500,6 +540,10 @@ function MainAppContent() {
               List Your Property
             </button>
             <span>•</span>
+            <button onClick={handleOpenPrivacyPolicy} className="hover:text-rose-600 transition-colors flex items-center gap-1 font-medium">
+              <ShieldCheck className="w-3.5 h-3.5 text-rose-500" /> Privacy Policy
+            </button>
+            <span>•</span>
             <span className="flex items-center gap-1 text-emerald-600">
               <MessageSquare className="w-3.5 h-3.5" /> Direct Owner Contact
             </span>
@@ -553,6 +597,13 @@ function MainAppContent() {
             setFilters(prev => ({ ...prev, city, destination: area || city }));
           }}
           onClose={() => setIsSitemapModalOpen(false)}
+        />
+      )}
+
+      {/* Official Privacy Policy Modal & Public Page View */}
+      {isPrivacyModalOpen && (
+        <PrivacyPolicyModal
+          onClose={handleClosePrivacyPolicy}
         />
       )}
 
