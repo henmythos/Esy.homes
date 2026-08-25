@@ -224,6 +224,31 @@ async function startServer() {
       if (!property || !property.id || !property.title) {
         return res.status(400).json({ error: "Invalid property object: id and title are required" });
       }
+
+      // Generate collision-proof unique slug
+      const propId = String(property.id);
+      const rawTitle = String(property.title || 'property');
+      const baseSlug = (property.slug || rawTitle).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'property';
+      
+      let uniqueSlug = baseSlug;
+      try {
+        const selfRow = await db.execute({ sql: "SELECT slug FROM properties WHERE id = ?", args: [propId] });
+        if (selfRow.rows && selfRow.rows.length > 0 && selfRow.rows[0].slug) {
+          const existingSlug = String(selfRow.rows[0].slug);
+          if (existingSlug === baseSlug || existingSlug.startsWith(baseSlug)) {
+            uniqueSlug = existingSlug;
+          }
+        } else {
+          const conflict = await db.execute({ sql: "SELECT id FROM properties WHERE slug = ? AND id != ?", args: [baseSlug, propId] });
+          if (conflict.rows && conflict.rows.length > 0) {
+            const suffix = propId.replace(/[^a-z0-9]/gi, '').slice(-6) || Math.random().toString(36).substring(2, 7);
+            uniqueSlug = `${baseSlug}-${suffix}`;
+          }
+        }
+      } catch (err) {
+        uniqueSlug = `${baseSlug}-${Date.now().toString(36)}`;
+      }
+      property.slug = uniqueSlug;
       
       await db.execute({
         sql: `INSERT INTO properties (
@@ -256,7 +281,7 @@ async function startServer() {
         args: [
           property.id,
           property.title,
-          property.slug || property.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          uniqueSlug,
           property.description || '',
           property.category || 'daily_rental',
           property.location?.city || 'Bengaluru',

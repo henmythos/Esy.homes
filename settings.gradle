@@ -21,3 +21,6 @@ project(':capacitor-keyboard').projectDir = file('node_modules/@capacitor/keyboa
 
 include ':capacitor-status-bar'
 project(':capacitor-status-bar').projectDir = file('node_modules/@capacitor/status-bar/android')
+
+include ':capacitor-geolocation'
+project(':capacitor-geolocation').projectDir = file('node_modules/@capacitor/geolocation/android')

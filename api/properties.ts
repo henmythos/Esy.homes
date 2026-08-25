@@ -25,6 +25,60 @@ let cachedProperties: any[] | null = null;
 let lastCacheTime = 0;
 const CACHE_TTL_MS = 15000; // 15-second TTL cache
 
+async function resolveUniqueSlug(client: any, property: any): Promise<string> {
+  const propId = String(property.id);
+  const rawTitle = String(property.title || 'property');
+  const baseSlug = (property.slug || rawTitle)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'property';
+
+  try {
+    // 1. Check if this exact property ID already exists in DB with a slug
+    const selfRow = await client.execute({
+      sql: "SELECT slug FROM properties WHERE id = ?",
+      args: [propId]
+    });
+
+    if (selfRow.rows && selfRow.rows.length > 0 && selfRow.rows[0].slug) {
+      const existingSlug = String(selfRow.rows[0].slug);
+      // Re-use existing slug for updates to preserve links
+      if (existingSlug === baseSlug || existingSlug.startsWith(baseSlug)) {
+        return existingSlug;
+      }
+    }
+
+    // 2. Check if baseSlug is available for any property other than propId
+    const conflict = await client.execute({
+      sql: "SELECT id FROM properties WHERE slug = ? AND id != ?",
+      args: [baseSlug, propId]
+    });
+
+    if (!conflict.rows || conflict.rows.length === 0) {
+      return baseSlug;
+    }
+
+    // 3. Append unique suffix derived from propId to guarantee zero collisions
+    const suffix = propId.replace(/[^a-z0-9]/gi, '').slice(-6) || Math.random().toString(36).substring(2, 7);
+    const candidateSlug = `${baseSlug}-${suffix}`;
+
+    const doubleCheck = await client.execute({
+      sql: "SELECT id FROM properties WHERE slug = ? AND id != ?",
+      args: [candidateSlug, propId]
+    });
+
+    if (!doubleCheck.rows || doubleCheck.rows.length === 0) {
+      return candidateSlug;
+    }
+
+    return `${baseSlug}-${Date.now().toString(36)}`;
+  } catch (err) {
+    console.warn("Failed to check slug uniqueness, appending timestamp:", err);
+    return `${baseSlug}-${Date.now().toString(36)}`;
+  }
+}
+
 export default async function handler(req: any, res: any) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
@@ -95,6 +149,10 @@ export default async function handler(req: any, res: any) {
         return res.status(400).json({ error: "Invalid property object: id and title are required" });
       }
 
+      // Generate collision-proof unique slug
+      const uniqueSlug = await resolveUniqueSlug(db, property);
+      property.slug = uniqueSlug;
+
       await db.execute({
         sql: `INSERT INTO properties (
           id, title, slug, description, category, city, country, address,
@@ -126,7 +184,7 @@ export default async function handler(req: any, res: any) {
         args: [
           property.id,
           property.title,
-          property.slug || property.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          uniqueSlug,
           property.description || '',
           property.category || 'daily_rental',
           property.location?.city || 'Bengaluru',

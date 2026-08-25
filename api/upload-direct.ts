@@ -31,12 +31,25 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const fileName = (req.query.fileName as string) || (req.query.filename as string);
-  const contentType = (req.headers['content-type'] as string) || 'image/webp';
+  // Use WHATWG URL API to parse query parameters safely (resolves DEP0169 url.parse deprecation warnings)
+  let rawFileName = '';
+  try {
+    const fullUrl = new URL(req.url || '', `https://${req.headers?.host || 'ezy.homes'}`);
+    rawFileName = fullUrl.searchParams.get('fileName') || fullUrl.searchParams.get('filename') || '';
+  } catch (e) {
+    // Fallback if req.url is a relative path
+  }
+  if (!rawFileName) {
+    rawFileName = (req.query?.fileName as string) || (req.query?.filename as string) || '';
+  }
 
-  if (!fileName) {
+  if (!rawFileName) {
     return res.status(400).json({ error: "fileName query parameter is required" });
   }
+
+  // Sanitize filename to prevent path traversal or S3 key collisions
+  const fileName = rawFileName.replace(/[^a-zA-Z0-9_.-]/g, '_');
+  const contentType = (req.headers['content-type'] as string) || 'image/webp';
 
   const r2AccountId = cleanEnv(process.env.CLOUDFLARE_R2_ACCOUNT_ID, 'CLOUDFLARE_R2_ACCOUNT_ID', '3b25d6fc00d328f896be8a3382324774');
   const r2AccessKeyId = cleanEnv(process.env.R2_ACCESS_KEY_ID, 'R2_ACCESS_KEY_ID', 'f14bb739067b7a74aaaff946cfe96681');
