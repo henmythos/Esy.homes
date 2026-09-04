@@ -16,11 +16,12 @@ import { MyListingsModal } from './components/MyListingsModal';
 import { SelfHostPanel } from './components/SelfHostPanel';
 import { SitemapDirectoryModal } from './components/SitemapDirectoryModal';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
-import { MobileBottomNav } from './components/MobileBottomNav';
+import { MobileBottomNav, MobileTab } from './components/MobileBottomNav';
+import { usePullToRefresh } from './hooks/usePullToRefresh';
 import { SEOStructuredData } from './components/SEOStructuredData';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { parseNaturalLanguageQuery, extractLocationTokens } from './utils/aiQueryParser';
-import { Heart, Search, MapPin, MessageSquare, Building2, ShieldCheck } from 'lucide-react';
+import { Heart, Search, MapPin, MessageSquare, Building2, ShieldCheck, RefreshCw } from 'lucide-react';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -99,7 +100,26 @@ function MainAppContent() {
   const [isSelfHostModalOpen, setIsSelfHostModalOpen] = useState<boolean>(false);
   const [isSitemapModalOpen, setIsSitemapModalOpen] = useState<boolean>(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
-  const [activeMobileTab, setActiveMobileTab] = useState<'explore' | 'wishlist'>('explore');
+  const [activeMobileTab, setActiveMobileTab] = useState<MobileTab>('explore');
+
+  const handleRefreshData = async () => {
+    const latest = await getStoredProperties();
+    if (latest && latest.length > 0) {
+      setProperties(latest);
+    }
+  };
+
+  const { containerRef, isRefreshing, pullDistance } = usePullToRefresh({
+    onRefresh: handleRefreshData,
+  });
+
+  const handleSelectMobileTab = (tab: MobileTab) => {
+    if (tab === 'my_listings') {
+      setIsMyListingsModalOpen(true);
+    } else {
+      setActiveMobileTab(tab);
+    }
+  };
 
   // Check URL path on initial load for /privacy-policy route
   useEffect(() => {
@@ -334,9 +354,14 @@ function MainAppContent() {
   // Filter properties in memory (low latency instant search)
   const filteredProperties = useMemo(() => {
     const matched = properties.filter((prop) => {
-      // Rental Type Filter (Daily, PG Hostel, Monthly Room)
+      // Rental Type Filter (Daily, PG Hostel, Monthly Room, Commercial Shop, For Sale)
       if (filters.rentalType && filters.rentalType !== 'all') {
         if (prop.rentalType !== filters.rentalType) return false;
+      }
+
+      // Sale Sub-type Filter (Open Plot, Independent House, Flat, Apartment, Villa, Commercial)
+      if (filters.rentalType === 'for_sale' && filters.saleSubType && filters.saleSubType !== 'all') {
+        if (prop.saleDetails?.propertyType !== filters.saleSubType) return false;
       }
 
       // City Filter
@@ -429,7 +454,15 @@ function MainAppContent() {
       />
 
       {/* Main Grid Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <main ref={containerRef} className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-y-auto">
+        
+        {/* Pull to refresh spinner indicator */}
+        {isRefreshing && (
+          <div className="flex items-center justify-center gap-2 py-2 mb-3 bg-rose-50 text-rose-600 rounded-full text-xs font-bold border border-rose-100 animate-pulse">
+            <RefreshCw className="w-4 h-4 animate-spin text-rose-500" />
+            <span>Updating latest properties...</span>
+          </div>
+        )}
         
         {/* Active Wishlist Banner Header */}
         {activeMobileTab === 'wishlist' && (
@@ -554,10 +587,9 @@ function MainAppContent() {
       {/* Mobile App Bottom Navigation */}
       <MobileBottomNav
         activeTab={activeMobileTab}
-        onSelectTab={setActiveMobileTab}
+        onSelectTab={handleSelectMobileTab}
         wishlistCount={wishlist.length}
         onOpenHostModal={() => setIsHostModalOpen(true)}
-        onOpenSelfHostModal={() => setIsSelfHostModalOpen(true)}
       />
 
       {/* Property Details Modal */}

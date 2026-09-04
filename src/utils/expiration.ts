@@ -21,7 +21,8 @@ export function getListingDurationDays(rentalType?: RentalType, isPremium?: bool
   if (rentalType === 'monthly_room') {
     return 90; // 90 days for monthly room rentals
   }
-  return 365; // 1 year (365 days) for daily rentals & PG hostels
+  // for_sale, daily_rental, pg_hostel, commercial_shop → 365 days
+  return 365;
 }
 
 /**

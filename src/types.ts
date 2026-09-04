@@ -7,7 +7,30 @@ export interface CurrencyInfo {
   rateToUSD: number; // exchange rate relative to USD
 }
 
-export type RentalType = 'daily_rental' | 'pg_hostel' | 'monthly_room' | 'commercial_shop';
+export type RentalType = 'daily_rental' | 'pg_hostel' | 'monthly_room' | 'commercial_shop' | 'for_sale';
+
+export type SalePropertyType =
+  | 'open_plot'
+  | 'independent_house'
+  | 'flat'
+  | 'apartment'
+  | 'villa'
+  | 'commercial';
+
+export interface SaleDetails {
+  propertyType: SalePropertyType; // Type of property being sold
+  salePriceINR: number;           // Sale price in INR
+  areaSqFt?: number;              // Area in square feet
+  areaSqYd?: number;              // Area in square yards (for plots)
+  facing?: 'east' | 'west' | 'north' | 'south' | 'north_east' | 'north_west' | 'south_east' | 'south_west'; // Property facing direction
+  ageOfPropertyYears?: number;    // 0 = New / Under Construction
+  loanAvailable?: boolean;        // Bank loan / home loan available
+  ownershipType?: 'freehold' | 'leasehold'; // Ownership type
+  furnishedStatus?: 'unfurnished' | 'semi_furnished' | 'fully_furnished'; // For flats/apartments
+  totalFloors?: number;
+  floorNo?: number;               // For flats
+  bhkType?: '1BHK' | '2BHK' | '3BHK' | '4BHK' | '5BHK+'; // For flats/apartments
+}
 
 export interface PgDetails {
   gender: 'mens' | 'womens' | 'unisex';
@@ -62,8 +85,8 @@ export interface Property {
   title: string;
   slug: string;
   description: string;
-  rentalType: RentalType; // daily_rental, pg_hostel, monthly_room, commercial_shop
-  category: 'daily_rental' | 'pg_hostel' | 'monthly_room' | 'commercial_shop' | 'apartment' | 'villa' | 'studio' | 'heritage' | 'homestay';
+  rentalType: RentalType; // daily_rental, pg_hostel, monthly_room, commercial_shop, for_sale
+  category: RentalType | 'apartment' | 'villa' | 'studio' | 'heritage' | 'homestay';
   location: {
     city: string; // e.g. "Bengaluru", "Mumbai", "Hyderabad"
     state?: string; // e.g. "Karnataka", "Maharashtra", "Telangana"
@@ -74,7 +97,7 @@ export interface Property {
     lng: number;
     pincode?: string;
   };
-  priceINR: number; // ₹ Price per night or per month depending on rentalType
+  priceINR: number; // ₹ Monthly rent OR sale price for for_sale listings
   pricePerNightUSD: number; // Fallback calculated rate for USD conversion
   securityDepositINR?: number; // Deposit required for monthly, PG, or commercial rentals
   customRentDetails?: string; // Flexible pricing details added by the host
@@ -86,7 +109,8 @@ export interface Property {
   beds: number;
   bathrooms: number;
   pgDetails?: PgDetails; // Specific to PG Hostels
-  commercialDetails?: CommercialDetails; // Specific to Commercial Shops
+  commercialDetails?: CommercialDetails; // Specific to Commercial Shops (rental)
+  saleDetails?: SaleDetails; // Specific to For Sale listings
   images: string[];
   amenities: string[]; // amenity ids
   customAmenities?: string[]; // custom string amenities added by the host
@@ -106,6 +130,7 @@ export interface Property {
 export interface SearchFilters {
   destination: string;
   rentalType: 'all' | RentalType;
+  saleSubType?: SalePropertyType | 'all'; // Filter for sale property sub-types
   category: string;
   city: string;
   area: string;
@@ -144,4 +169,3 @@ export interface DateRange {
   startDate: string | null; // YYYY-MM-DD
   endDate: string | null;   // YYYY-MM-DD
 }
-

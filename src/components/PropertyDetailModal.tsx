@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Currency, Property } from '../types';
 import { formatPrice } from '../utils/currencies';
+import { formatSalePrice } from '../utils/formatPrice';
+import { getSalePropertyTypeLabel } from '../utils/categories';
 import { ALL_AMENITIES } from '../data/amenities';
 import { getTimeAgo, getUpgradePropertyWhatsAppUrl } from '../utils/expiration';
 import { OpenStreetMap } from './OpenStreetMap';
@@ -8,7 +10,7 @@ import {
   X, Star, Heart, MapPin, Calendar, Users, Phone, MessageSquare, 
   ShieldCheck, Check, Info, Share2, Sparkles, AlertCircle, Clock,
   Wifi, Wind, Zap, Droplets, Briefcase, Utensils, Waves, Car, Shield, Sun, Tv, Shirt, Maximize2, Flame,
-  ChevronLeft, ChevronRight, Home, Eye
+  ChevronLeft, ChevronRight, Home, Eye, Tag, IndianRupee, TrendingUp
 } from 'lucide-react';
 
 interface PropertyDetailModalProps {
@@ -142,17 +144,26 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const priceINR = property.priceINR || (property.pricePerNightUSD * 83.5);
   const nights = calculateNights();
   const isDaily = property.rentalType === 'daily_rental';
+  const isForSale = property.rentalType === 'for_sale';
   const subtotalINR = isDaily ? priceINR * nights : priceINR;
   const cleaningFeeINR = (property.cleaningFeeUSD || 0) * 83.5;
   const totalINR = subtotalINR + cleaningFeeINR;
 
-  // Generate pre-filled WhatsApp message
+  // Generate pre-filled WhatsApp message (category-aware)
   const getWhatsAppUrl = () => {
-    const rateLabel = isDaily ? `${nights} night(s)` : `monthly rental`;
-    const defaultMsg = `Hello ${property.owner.name}, I found your property "${property.title}" in ${property.location.neighborhood}, ${property.location.city} on ezy.homes. I would like to inquire about booking for ${rateLabel} starting ${checkInDate} for ${guestsCount} person(s). Rate: ${formatPrice(priceINR, activeCurrency)}. Is this available?`;
-    const finalMsg = customMessage ? `${customMessage} (Inquiry for ${checkInDate}, ${guestsCount} guests)` : defaultMsg;
+    let defaultMsg: string;
+    if (isForSale) {
+      const saleTypeLabel = property.saleDetails ? getSalePropertyTypeLabel(property.saleDetails.propertyType) : 'property';
+      const salePrice = property.saleDetails?.salePriceINR || priceINR;
+      defaultMsg = `Hello ${property.owner.name}, I'm interested in buying your ${saleTypeLabel} "${property.title}" in ${property.location.neighborhood}, ${property.location.city} listed on ezy.homes for ${formatSalePrice(salePrice)}. Please share more details and arrange a site visit.`;
+    } else {
+      const rateLabel = isDaily ? `${nights} night(s)` : `monthly rental`;
+      defaultMsg = `Hello ${property.owner.name}, I found your property "${property.title}" in ${property.location.neighborhood}, ${property.location.city} on ezy.homes. I would like to inquire about booking for ${rateLabel} starting ${checkInDate} for ${guestsCount} person(s). Rate: ${formatPrice(priceINR, activeCurrency)}. Is this available?`;
+    }
+    const finalMsg = customMessage ? `${customMessage}` : defaultMsg;
     return `https://wa.me/${property.owner.whatsapp}?text=${encodeURIComponent(finalMsg)}`;
   };
+
 
   const handleCopyPhone = () => {
     navigator.clipboard.writeText(property.owner.phone);
@@ -367,8 +378,27 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 </div>
               </div>
 
-              {/* Property Specs */}
-              {property.rentalType === 'commercial_shop' ? (
+              {/* Property Specs Bar */}
+              {property.rentalType === 'for_sale' && property.saleDetails ? (
+                <div className="flex items-center gap-4 py-3 border-y border-teal-100 text-xs sm:text-sm font-semibold text-teal-800 bg-teal-50/40 px-2 rounded-xl flex-wrap">
+                  <span className="flex items-center gap-1 text-teal-700">
+                    <Tag className="w-3.5 h-3.5" />
+                    {getSalePropertyTypeLabel(property.saleDetails.propertyType)}
+                  </span>
+                  {property.saleDetails.areaSqFt && (
+                    <><span>•</span><span>{property.saleDetails.areaSqFt.toLocaleString()} Sq Ft</span></>
+                  )}
+                  {property.saleDetails.areaSqYd && !property.saleDetails.areaSqFt && (
+                    <><span>•</span><span>{property.saleDetails.areaSqYd} Sq Yd</span></>
+                  )}
+                  {property.saleDetails.bhkType && (
+                    <><span>•</span><span>{property.saleDetails.bhkType}</span></>
+                  )}
+                  {property.saleDetails.loanAvailable && (
+                    <><span>•</span><span className="text-emerald-700 font-bold">🏦 Loan Available</span></>
+                  )}
+                </div>
+              ) : property.rentalType === 'commercial_shop' ? (
                 <div className="flex items-center gap-4 py-3 border-y border-gray-100 text-xs sm:text-sm font-semibold text-gray-700 flex-wrap">
                   <span>{property.commercialDetails?.areaSqFt || 500} Sq Ft Shop Area</span>
                   <span>•</span>
@@ -404,27 +434,90 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 </div>
               )}
 
+              {/* For Sale Details Card */}
+              {property.rentalType === 'for_sale' && property.saleDetails && (
+                <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-extrabold text-teal-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                      <Tag className="w-4 h-4 text-teal-600" />
+                      Property Sale Details
+                    </h3>
+                    <span className="font-black text-teal-700 text-lg">
+                      {formatSalePrice(property.saleDetails.salePriceINR || property.priceINR)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-semibold">
+                    <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">Property Type</span>
+                      <span className="font-extrabold text-teal-900">{getSalePropertyTypeLabel(property.saleDetails.propertyType)}</span>
+                    </div>
+                    {property.saleDetails.areaSqFt && (
+                      <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Area</span>
+                        <span className="font-extrabold text-slate-900">{property.saleDetails.areaSqFt.toLocaleString()} Sq Ft</span>
+                      </div>
+                    )}
+                    {property.saleDetails.areaSqYd && (
+                      <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Plot Area</span>
+                        <span className="font-extrabold text-slate-900">{property.saleDetails.areaSqYd} Sq Yd</span>
+                      </div>
+                    )}
+                    {property.saleDetails.bhkType && (
+                      <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Configuration</span>
+                        <span className="font-extrabold text-slate-900">{property.saleDetails.bhkType}</span>
+                      </div>
+                    )}
+                    {property.saleDetails.facing && (
+                      <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Facing</span>
+                        <span className="font-extrabold text-slate-900 capitalize">{property.saleDetails.facing.replace('_', ' ')} Facing</span>
+                      </div>
+                    )}
+                    <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">Age</span>
+                      <span className="font-extrabold text-slate-900">
+                        {property.saleDetails.ageOfPropertyYears === 0 ? 'New / Under Construction' : `${property.saleDetails.ageOfPropertyYears} Years`}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase">Home Loan</span>
+                      <span className={`font-extrabold ${property.saleDetails.loanAvailable ? 'text-emerald-700' : 'text-gray-700'}`}>
+                        {property.saleDetails.loanAvailable ? '✅ Available' : 'Not Available'}
+                      </span>
+                    </div>
+                    {property.saleDetails.furnishedStatus && property.saleDetails.propertyType !== 'open_plot' && (
+                      <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">Furnishing</span>
+                        <span className="font-extrabold text-slate-900 capitalize">{property.saleDetails.furnishedStatus.replace('_', ' ')}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Key Highlights & Specifications Card */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col gap-3">
                 <h3 className="font-extrabold text-gray-900 text-xs uppercase tracking-wider text-rose-600">
-                  Key Specifications & Rental Terms
+                  {property.rentalType === 'for_sale' ? 'Listing Details' : 'Key Specifications & Rental Terms'}
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-semibold text-gray-800">
                   {property.rentalType === 'commercial_shop' && (
                     <>
-                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Shop Area</span>
                         <span className="font-extrabold text-purple-900">{property.commercialDetails?.areaSqFt || 500} Sq Ft</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Floor Level</span>
                         <span className="font-extrabold text-slate-900">{property.commercialDetails?.floorLevel || 'Ground Floor'}</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Furnishing</span>
                         <span className="font-extrabold text-slate-900 capitalize">{property.commercialDetails?.furnishedStatus?.replace('_', ' ') || 'Semi Furnished'}</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-purple-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Parking</span>
                         <span className="font-extrabold text-emerald-700">{property.commercialDetails?.parkingAvailable ? 'Available' : 'Street Parking'}</span>
                       </div>
@@ -433,35 +526,35 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
                   {property.rentalType === 'pg_hostel' && property.pgDetails && (
                     <>
-                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">PG Gender</span>
                         <span className="font-extrabold text-slate-900 capitalize">{property.pgDetails.gender} PG</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Sharing Type</span>
                         <span className="font-extrabold text-slate-900 capitalize">{property.pgDetails.sharing} Sharing</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">Food Included</span>
                         <span className="font-extrabold text-emerald-700">{property.pgDetails.foodIncluded ? 'Yes (3 Meals)' : 'No Meals'}</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                      <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-sm">
                         <span className="text-[10px] text-gray-400 font-bold uppercase">AC Room</span>
                         <span className="font-extrabold text-slate-900">{property.pgDetails.acAvailable ? 'AC Available' : 'Non-AC'}</span>
                       </div>
                     </>
                   )}
 
-                  {property.securityDepositINR !== undefined && property.securityDepositINR > 0 && (
-                    <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
+                  {property.securityDepositINR !== undefined && property.securityDepositINR > 0 && property.rentalType !== 'for_sale' && (
+                    <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-sm">
                       <span className="text-[10px] text-gray-400 font-bold uppercase">Security Deposit</span>
                       <span className="font-extrabold text-rose-600">₹{property.securityDepositINR.toLocaleString('en-IN')}</span>
                     </div>
                   )}
 
-                  <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-2xs">
-                    <span className="text-[10px] text-gray-400 font-bold uppercase">Listing Category</span>
-                    <span className="font-extrabold text-slate-900 uppercase text-[11px]">{property.rentalType.replace('_', ' ')}</span>
+                  <div className="p-2.5 rounded-xl bg-white border border-gray-200 flex flex-col gap-0.5 shadow-sm">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase">Listing Type</span>
+                    <span className="font-extrabold text-slate-900 uppercase text-[11px]">{property.rentalType.replace(/_/g, ' ')}</span>
                   </div>
                 </div>
               </div>

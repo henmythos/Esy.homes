@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Currency, Property } from '../types';
 import { formatRentalRate } from '../utils/currencies';
+import { formatSalePrice } from '../utils/formatPrice';
+import { getSalePropertyTypeLabel } from '../utils/categories';
 import { getTimeAgo } from '../utils/expiration';
-import { Star, Heart, Share2, ChevronLeft, ChevronRight, PhoneCall, ShieldCheck, MapPin, Users, Calendar, Building, Zap, Clock } from 'lucide-react';
+import {
+  Star, Heart, Share2, ChevronLeft, ChevronRight,
+  PhoneCall, ShieldCheck, MapPin, Users, Calendar,
+  Building, Zap, Clock, Tag, MessageCircle,
+} from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
@@ -22,7 +28,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
 
-  // Safe fallback guards for properties
+  // Safe fallback guards
   const propertyImages = (Array.isArray(property?.images) && property.images.length > 0)
     ? property.images
     : ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80'];
@@ -31,6 +37,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const pois = Array.isArray(property?.nearbyPOIs) ? property.nearbyPOIs : [];
   const neighborhood = property?.location?.neighborhood || property?.location?.city || 'Location';
   const city = property?.location?.city || '';
+  const isForSale = property.rentalType === 'for_sale';
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,31 +69,37 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     }
   };
 
+  const handleWhatsApp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const waNumber = property.owner?.whatsapp || property.owner?.phone?.replace(/[^0-9]/g, '') || '';
+    if (!waNumber) return;
+    const msg = isForSale
+      ? `Hi, I'm interested in buying your ${property.saleDetails ? getSalePropertyTypeLabel(property.saleDetails.propertyType) : 'property'} "${property.title}" listed on ezy.homes. Please share more details.`
+      : `Hi, I'm interested in your rental "${property.title}" in ${neighborhood}, ${city} listed on ezy.homes. Is it available?`;
+    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
   const getRentalTypeBadge = () => {
     switch (property.rentalType) {
       case 'pg_hostel': {
-        const genderLabel = property.pgDetails?.gender === 'mens' ? 'Mens PG' : property.pgDetails?.gender === 'womens' ? 'Womens PG' : 'Unisex PG';
-        return {
-          label: `${genderLabel} (${property.pgDetails?.sharing || 'sharing'})`,
-          bg: 'bg-blue-600 text-white',
-        };
+        const genderLabel =
+          property.pgDetails?.gender === 'mens' ? 'Mens PG' :
+          property.pgDetails?.gender === 'womens' ? 'Womens PG' : 'Unisex PG';
+        return { label: `${genderLabel} (${property.pgDetails?.sharing || 'sharing'})`, bg: 'bg-blue-600 text-white' };
       }
       case 'commercial_shop':
-        return {
-          label: 'Commercial Shop',
-          bg: 'bg-purple-600 text-white',
-        };
+        return { label: 'Commercial Shop', bg: 'bg-purple-600 text-white' };
       case 'monthly_room':
-        return {
-          label: 'Monthly Room',
-          bg: 'bg-emerald-600 text-white',
-        };
+        return { label: 'Monthly Room', bg: 'bg-emerald-600 text-white' };
+      case 'for_sale': {
+        const typeLabel = property.saleDetails
+          ? getSalePropertyTypeLabel(property.saleDetails.propertyType)
+          : 'For Sale';
+        return { label: `🏷️ ${typeLabel}`, bg: 'bg-teal-600 text-white' };
+      }
       case 'daily_rental':
       default:
-        return {
-          label: 'Daily Stay',
-          bg: 'bg-rose-600 text-white',
-        };
+        return { label: 'Daily Stay', bg: 'bg-rose-600 text-white' };
     }
   };
 
@@ -95,131 +108,107 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   return (
     <div
       onClick={() => onClick(property)}
-      className="group cursor-pointer flex flex-col gap-2.5 rounded-2xl p-2.5 transition-all hover:bg-gray-50/90 border border-gray-100 hover:border-gray-200 hover:shadow-md bg-white overflow-hidden no-scrollbar"
+      className="group cursor-pointer flex flex-col gap-2.5 rounded-2xl p-2.5 transition-all hover:bg-gray-50/90 border border-gray-100 hover:border-gray-200 hover:shadow-md bg-white overflow-hidden"
     >
-      {/* Image Container with Slider */}
-      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-gray-100 shadow-2xs">
+      {/* ── Image Slider ── */}
+      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-gray-100 shadow-sm">
         <img
           src={propertyImages[currentImageIdx] || propertyImages[0]}
           alt={property.title}
           loading="lazy"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80';
+            (e.target as HTMLImageElement).src =
+              'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80';
           }}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-103"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 opacity-70" />
+        {/* Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-70" />
 
-        {/* Action Buttons Top Right: Share + Wishlist */}
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+        {/* Top-right: Share + Wishlist */}
+        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5">
           <button
             onClick={handleShare}
-            className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xs transition-transform active:scale-90 text-white shadow-sm flex items-center gap-1"
+            className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-transform active:scale-90 text-white shadow-sm flex items-center gap-1"
             title="Share Property Link"
           >
-            <Share2 className="w-4 h-4 text-white stroke-[2.2]" />
+            <Share2 className="w-3.5 h-3.5 text-white" />
             {isCopied && <span className="text-[10px] font-bold text-emerald-400 pr-1">Copied!</span>}
           </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleWishlist(property.id);
-            }}
-            className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-xs transition-transform active:scale-90 text-white shadow-sm"
-            title={isWishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
+            onClick={(e) => { e.stopPropagation(); onToggleWishlist(property.id); }}
+            className="p-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-transform active:scale-90 text-white shadow-sm"
+            title={isWishlisted ? 'Remove from Saved' : 'Save Property'}
           >
-            <Heart
-              className={`w-4 h-4 transition-colors ${
-                isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-white stroke-[2.2]'
-              }`}
-            />
+            <Heart className={`w-3.5 h-3.5 transition-colors ${isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-white'}`} />
           </button>
         </div>
 
-
-        {/* Badges Overlay */}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 items-start">
+        {/* Top-left: Badges */}
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1 items-start">
           {property.isPremium ? (
-            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-amber-300">
-              <Zap className="w-2.5 h-2.5 fill-current text-amber-200" /> ★ ezy.homes Verified
+            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm flex items-center gap-1 border border-amber-300">
+              <Zap className="w-2.5 h-2.5 fill-current text-amber-200" /> ★ Verified
             </span>
           ) : (
-            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-slate-900/85 text-white shadow-xs backdrop-blur-md flex items-center gap-1 border border-slate-700/50">
-              <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" /> ezy.homes Free Listing
+            <span className="px-2.5 py-0.5 rounded-full font-black text-[9px] tracking-wide uppercase bg-slate-900/85 text-white shadow-sm flex items-center gap-1 border border-slate-700/50">
+              <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" /> Free Listing
             </span>
           )}
-          <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] tracking-wide shadow-xs backdrop-blur-md ${badge.bg}`}>
+          <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] tracking-wide shadow-sm backdrop-blur-sm ${badge.bg}`}>
             {badge.label}
           </span>
-          {property.instantCallAvailable && (
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white font-bold text-[10px] backdrop-blur-md shadow-2xs flex items-center gap-1">
-              <PhoneCall className="w-2.5 h-2.5" /> Call / WA Direct
-            </span>
-          )}
         </div>
 
-        {/* Slider Navigation Arrows */}
+        {/* Image Navigation Arrows */}
         {propertyImages.length > 1 && (
           <>
-            <button
-              onClick={prevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 text-gray-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-            >
+            <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 text-gray-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 text-gray-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-            >
+            <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 text-gray-800 shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white">
               <ChevronRight className="w-4 h-4" />
             </button>
           </>
         )}
 
-        {/* Image Dots Indicator */}
+        {/* Image Dots */}
         {propertyImages.length > 1 && (
           <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
             {propertyImages.map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-1.5 rounded-full transition-all ${
-                  idx === currentImageIdx ? 'w-4 bg-white shadow-xs' : 'w-1.5 bg-white/60'
-                }`}
-              />
+              <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === currentImageIdx ? 'w-4 bg-white shadow-sm' : 'w-1.5 bg-white/60'}`} />
             ))}
           </div>
         )}
       </div>
 
-      {/* Property Details */}
+      {/* ── Property Details ── */}
       <div className="flex flex-col gap-1 px-1">
+
         {/* Location & Rating */}
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-extrabold text-gray-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-rose-600 transition-colors">
+          <h3 className="font-extrabold text-gray-900 text-sm sm:text-[15px] leading-snug line-clamp-1 group-hover:text-rose-600 transition-colors">
             {neighborhood}, {city}
           </h3>
           <div className="flex items-center gap-1 shrink-0 text-xs font-bold text-gray-900 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
             <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span>{ratingVal.toFixed(2)}</span>
+            <span>{ratingVal.toFixed(1)}</span>
           </div>
         </div>
 
-        {/* Property Title & Listing Age */}
+        {/* Title & Age */}
         <div className="flex items-center justify-between gap-1">
-          <p className="text-xs text-gray-600 line-clamp-1 font-medium flex-1">
-            {property.title}
-          </p>
-          <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/80 shrink-0 flex items-center gap-0.5" title={`Listed ${getTimeAgo(property.createdAt)}`}>
-            <Clock className="w-2.5 h-2.5 text-slate-500" />
+          <p className="text-xs text-gray-600 line-clamp-1 font-medium flex-1">{property.title}</p>
+          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/80 shrink-0 flex items-center gap-0.5">
+            <Clock className="w-2.5 h-2.5 text-slate-400" />
             {getTimeAgo(property.createdAt)}
           </span>
         </div>
 
-        {/* PG or Commercial Specifics */}
+        {/* Rental-type specific info row */}
         {property.rentalType === 'pg_hostel' && property.pgDetails && (
-          <div className="text-[11px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-100 line-clamp-1 flex items-center gap-1">
+          <div className="text-[11px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-100 flex items-center gap-1">
             <span>{property.pgDetails.foodIncluded ? 'Food Included' : 'Self Cooking'}</span>
             <span>•</span>
             <span>{property.pgDetails.acAvailable ? 'AC Room' : 'Non-AC'}</span>
@@ -227,20 +216,25 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         )}
 
         {property.rentalType === 'commercial_shop' && (
-          <div className="text-[11px] text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded border border-purple-100 line-clamp-1 flex items-center gap-1">
+          <div className="text-[11px] text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded border border-purple-100 flex items-center gap-1">
             <span>{property.commercialDetails?.areaSqFt ? `${property.commercialDetails.areaSqFt} sq ft` : 'Shop Space'}</span>
             <span>•</span>
             <span>{property.commercialDetails?.floorLevel || 'Ground Floor'}</span>
-            {property.commercialDetails?.parkingAvailable && (
-              <>
-                <span>•</span>
-                <span>Parking</span>
-              </>
-            )}
           </div>
         )}
 
-        {/* Nearby POI */}
+        {/* For Sale info chip */}
+        {isForSale && property.saleDetails && (
+          <div className="text-[11px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded border border-teal-100 flex items-center gap-1 flex-wrap">
+            {property.saleDetails.areaSqFt && <span>{property.saleDetails.areaSqFt.toLocaleString()} sq ft</span>}
+            {property.saleDetails.areaSqYd && !property.saleDetails.areaSqFt && <span>{property.saleDetails.areaSqYd} sq yd</span>}
+            {(property.saleDetails.areaSqFt || property.saleDetails.areaSqYd) && <span>•</span>}
+            {property.saleDetails.loanAvailable && <span className="text-emerald-700 font-bold">🏦 Loan Available</span>}
+            {property.saleDetails.bhkType && <span>{property.saleDetails.bhkType}</span>}
+          </div>
+        )}
+
+        {/* Nearest POI */}
         {pois.length > 0 && (
           <p className="text-[11px] text-gray-500 flex items-center gap-1 line-clamp-1 mt-0.5">
             <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
@@ -248,24 +242,40 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           </p>
         )}
 
-        {/* Price Row */}
-        <div className="mt-2 pt-2 border-t border-gray-100 flex items-baseline justify-between">
-          <div>
-            <div className="font-black text-rose-600 text-base sm:text-lg">
-              {formatRentalRate(property.priceINR || (property.pricePerNightUSD * 83.5), property.rentalType, activeCurrency)}
-            </div>
-            {property.securityDepositINR && property.securityDepositINR > 0 && (
+        {/* ── Price + CTA row ── */}
+        <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+          <div className="flex flex-col">
+            {isForSale ? (
+              <div className="font-black text-teal-600 text-base sm:text-lg leading-tight">
+                {formatSalePrice(property.saleDetails?.salePriceINR || property.priceINR)}
+              </div>
+            ) : (
+              <div className="font-black text-rose-600 text-base sm:text-lg leading-tight">
+                {formatRentalRate(property.priceINR || (property.pricePerNightUSD * 83.5), property.rentalType, activeCurrency)}
+              </div>
+            )}
+            {!isForSale && property.securityDepositINR && property.securityDepositINR > 0 && (
               <div className="text-[10px] text-gray-400">
-                Security Deposit: ₹{property.securityDepositINR.toLocaleString('en-IN')}
+                Deposit: ₹{property.securityDepositINR.toLocaleString('en-IN')}
               </div>
             )}
           </div>
-          <span className="text-[11px] font-bold text-gray-900 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg transition-colors">
-            View Details →
-          </span>
+
+          {/* WhatsApp CTA — visible on mobile card */}
+          {property.owner?.whatsapp && (
+            <button
+              onClick={handleWhatsApp}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-[11px] font-bold shadow-sm transition-all active:scale-95 shrink-0 ${
+                isForSale ? 'bg-teal-500 hover:bg-teal-600' : 'bg-emerald-500 hover:bg-emerald-600'
+              }`}
+              title="Contact on WhatsApp"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              {isForSale ? 'Enquire' : 'WhatsApp'}
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 };
-

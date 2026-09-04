@@ -159,10 +159,10 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide py-0.5">Popular:</span>
                   {[
                     'Rental Houses',
-                    'Free Rental Listing',
-                    'Property Listing',
-                    'OYO Rooms',
-                    'Independent Room Stays',
+                    'Properties for Sale',
+                    'Plots & Houses',
+                    'Free Property Listing',
+                    'PG Hostels',
                   ].map((keyword) => (
                     <button
                       key={keyword}
