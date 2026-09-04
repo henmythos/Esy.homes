@@ -28,7 +28,7 @@ export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
   const isPG = filters.rentalType === 'pg_hostel' || filters.rentalType === 'all';
 
   return (
-    <div className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-16 sm:top-20 z-20 shadow-sm transition-all duration-200">
+    <div className="bg-white border-t border-b border-gray-100 transition-all duration-200">
       {/* Hidden/Semantic H1 for Search Engine Indexing */}
       <h1 className="sr-only">
         Free Property Listing Website — Post & Find Rentals, PG Hostels, Monthly Rooms, Daily Stays & Properties for Sale

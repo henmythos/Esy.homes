@@ -435,23 +435,24 @@ function MainAppContent() {
       {/* Google Search & Rich Snippets SEO JSON-LD Injector */}
       <SEOStructuredData properties={filteredProperties} selectedProperty={selectedProperty} />
 
-      {/* Header Bar */}
-      <Header
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onOpenHostModal={() => setIsHostModalOpen(true)}
-        onOpenMyListingsModal={() => setIsMyListingsModalOpen(true)}
-        onOpenSelfHostModal={() => setIsSelfHostModalOpen(true)}
-        onOpenSitemapModal={() => setIsSitemapModalOpen(true)}
-        totalResultsCount={filteredProperties.length}
-      />
+      {/* Top Sticky Navigation Container (Header + Category Filter Bar) */}
+      <div className="sticky top-0 z-30 bg-white shadow-xs pt-[env(safe-area-inset-top,0px)] border-b border-gray-100">
+        <Header
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onOpenHostModal={() => setIsHostModalOpen(true)}
+          onOpenMyListingsModal={() => setIsMyListingsModalOpen(true)}
+          onOpenSelfHostModal={() => setIsSelfHostModalOpen(true)}
+          onOpenSitemapModal={() => setIsSitemapModalOpen(true)}
+          totalResultsCount={filteredProperties.length}
+        />
 
-      {/* Category & Rental Type Filter Bar */}
-      <CategoryFilterBar
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        totalCount={filteredProperties.length}
-      />
+        <CategoryFilterBar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          totalCount={filteredProperties.length}
+        />
+      </div>
 
       {/* Main Grid Content */}
       <main ref={containerRef} className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-y-auto">
