@@ -395,7 +395,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                     <><span>•</span><span>{property.saleDetails.bhkType}</span></>
                   )}
                   {property.saleDetails.loanAvailable && (
-                    <><span>•</span><span className="text-emerald-700 font-bold">🏦 Loan Available</span></>
+                    <><span>•</span><span className="text-emerald-700 font-bold">Loan Available</span></>
                   )}
                 </div>
               ) : property.rentalType === 'commercial_shop' ? (
@@ -484,7 +484,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                     <div className="p-2.5 rounded-xl bg-white border border-teal-200 flex flex-col gap-0.5 shadow-sm">
                       <span className="text-[10px] text-gray-400 font-bold uppercase">Home Loan</span>
                       <span className={`font-extrabold ${property.saleDetails.loanAvailable ? 'text-emerald-700' : 'text-gray-700'}`}>
-                        {property.saleDetails.loanAvailable ? '✅ Available' : 'Not Available'}
+                        {property.saleDetails.loanAvailable ? 'Available' : 'Not Available'}
                       </span>
                     </div>
                     {property.saleDetails.furnishedStatus && property.saleDetails.propertyType !== 'open_plot' && (

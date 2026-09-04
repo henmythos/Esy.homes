@@ -1094,7 +1094,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
               <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200">
                 <label className="text-xs font-black text-amber-900 flex items-center gap-1.5 mb-2">
                   <ShieldCheck className="w-4 h-4 text-amber-600" />
-                  {couponApplied ? '✅ Premium Listing Activated!' : 'Premium Coupon (Optional)'}
+                  {couponApplied ? 'Premium Listing Activated!' : 'Premium Coupon (Optional)'}
                 </label>
                 {!couponApplied ? (
                   <div className="flex gap-2">
