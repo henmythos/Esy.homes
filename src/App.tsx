@@ -383,9 +383,15 @@ function MainAppContent() {
           prop.location.city,
           prop.location.state,
           prop.location.neighborhood,
+          prop.location.streetName,
+          prop.location.landmark,
+          prop.location.pincode,
           prop.location.address,
           prop.description,
           prop.category,
+          prop.rentalType,
+          prop.saleDetails?.propertyType,
+          prop.saleDetails?.bhkType,
           ...(prop.nearbyPOIs?.map((p) => p.name) || []),
         ]
           .filter(Boolean)

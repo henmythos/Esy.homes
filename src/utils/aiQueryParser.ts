@@ -11,7 +11,9 @@ export function parseNaturalLanguageQuery(query: string, currentFilters: SearchF
   const newFilters: SearchFilters = { ...currentFilters, destination: query };
 
   // Detect Rental Type & Targeted High-Value Keywords
-  if (/\b(commercial|shop|store|office|retail|showroom|warehouse|commercial space)\b/i.test(q)) {
+  if (/\b(sale|buy|for sale|plot|plots|open plot|land|villa for sale|house for sale|flat for sale|property for sale)\b/i.test(q)) {
+    newFilters.rentalType = 'for_sale';
+  } else if (/\b(commercial|shop|store|office|retail|showroom|warehouse|commercial space)\b/i.test(q)) {
     newFilters.rentalType = 'commercial_shop';
   } else if (/\b(pg|hostel|paying guest|pgs|co-living|coliving)\b/i.test(q)) {
     newFilters.rentalType = 'pg_hostel';

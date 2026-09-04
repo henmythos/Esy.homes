@@ -434,6 +434,26 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 </div>
               )}
 
+              {/* Street-Level Location Highlights */}
+              {(property.location.streetName || property.location.landmark || property.location.pincode) && (
+                <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex flex-col gap-1.5 text-xs text-blue-900 font-medium">
+                  <span className="text-[10px] font-black uppercase text-blue-700 tracking-wider flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" /> Locality & Address Details
+                  </span>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-800">
+                    {property.location.streetName && (
+                      <span><strong>Street / Sector:</strong> {property.location.streetName}</span>
+                    )}
+                    {property.location.landmark && (
+                      <span><strong>Landmark:</strong> {property.location.landmark}</span>
+                    )}
+                    {property.location.pincode && (
+                      <span><strong>Pincode:</strong> {property.location.pincode}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* For Sale Details Card */}
               {property.rentalType === 'for_sale' && property.saleDetails && (
                 <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 flex flex-col gap-3">

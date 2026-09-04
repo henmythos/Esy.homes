@@ -47,8 +47,13 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [city, setCity] = useState('Bengaluru');
+  const [isCustomCity, setIsCustomCity] = useState(false);
+  const [customCityName, setCustomCityName] = useState('');
   const [stateName, setStateName] = useState('Karnataka');
   const [neighborhood, setNeighborhood] = useState('');
+  const [streetName, setStreetName] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [pincode, setPincode] = useState('');
   const [address, setAddress] = useState('');
   const [lat, setLat] = useState<number>(12.9352);
   const [lng, setLng] = useState<number>(77.6245);
@@ -110,6 +115,12 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
   const maxPhotos = isForSale ? 10 : 5;
 
   const handleCitySelect = (selectedCityName: string) => {
+    if (selectedCityName === '__OTHER__') {
+      setIsCustomCity(true);
+      setCity('');
+      return;
+    }
+    setIsCustomCity(false);
     setCity(selectedCityName);
     const key = selectedCityName.toLowerCase();
     if (CITY_COORDS[key]) {
@@ -224,11 +235,14 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
       rentalType,
       category: rentalType,
       location: {
-        city: city.trim(),
-        state: stateName.trim(),
+        city: (isCustomCity && customCityName.trim()) ? customCityName.trim() : (city.trim() || 'Bengaluru'),
+        state: stateName.trim() || 'India',
         country: 'India',
-        address: address.trim() || `${neighborhood}, ${city}`,
+        address: address.trim() || `${streetName ? streetName + ', ' : ''}${neighborhood}, ${isCustomCity && customCityName.trim() ? customCityName.trim() : city}`,
         neighborhood: neighborhood.trim() || city,
+        streetName: streetName.trim() || undefined,
+        landmark: landmark.trim() || undefined,
+        pincode: pincode.trim() || undefined,
         lat: Number(lat) || 12.9352,
         lng: Number(lng) || 77.6245,
       },
@@ -458,43 +472,110 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
                 />
               </div>
 
-              {/* City + Area */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* City + Custom City */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-800">City *</label>
+                  <label className="text-xs font-bold text-gray-800">City / Town *</label>
                   <select
-                    value={city}
+                    value={isCustomCity ? '__OTHER__' : city}
                     onChange={(e) => handleCitySelect(e.target.value)}
-                    className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm bg-white"
+                    className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm bg-white font-medium"
                   >
                     {INDIAN_CITIES.map((c) => (
                       <option key={c.name} value={c.name}>{c.name} ({c.state})</option>
                     ))}
+                    <option value="__OTHER__">+ Enter Other City or Town...</option>
                   </select>
                 </div>
+
+                {isCustomCity ? (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-800">Enter City/Town Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Warangal, Tirupati, Siliguri..."
+                      value={customCityName}
+                      onChange={(e) => setCustomCityName(e.target.value)}
+                      className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-800">Area / Locality *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Koramangala, Gachibowli, MVP Colony..."
+                      value={neighborhood}
+                      onChange={(e) => setNeighborhood(e.target.value)}
+                      className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {isCustomCity && (
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-800">Area / Locality *</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Koramangala, Gachibowli..."
+                    placeholder="e.g. Main Market, Station Road, Sector 1..."
                     value={neighborhood}
                     onChange={(e) => setNeighborhood(e.target.value)}
                     className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm"
                   />
                 </div>
+              )}
+
+              {/* Street / Sub-area & Landmark */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-800">Street / Sub-area / Sector</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 12th Main Road, Sector 62, Road No 36"
+                    value={streetName}
+                    onChange={(e) => setStreetName(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-800">Nearest Landmark / Spot</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Near Metro Pillar 120, Opp. Forum Mall"
+                    value={landmark}
+                    onChange={(e) => setLandmark(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm"
+                  />
+                </div>
               </div>
 
-              {/* Address */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-800">Full Address</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 12th Main Road, Sector 4"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm"
-                />
+              {/* Address + Pincode */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-800">Full Address</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Flat 302, Sunrise Heights, 12th Main"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-800">Pincode</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    placeholder="560034"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-rose-500 text-sm font-mono"
+                  />
+                </div>
               </div>
 
               {/* Map */}

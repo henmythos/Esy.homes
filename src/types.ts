@@ -92,10 +92,12 @@ export interface Property {
     state?: string; // e.g. "Karnataka", "Maharashtra", "Telangana"
     country: string; // "India"
     address: string;
-    neighborhood: string; // Area e.g. "Koramangala", "HSR Layout", "Gachibowli"
+    neighborhood: string; // Locality / Area e.g. "Koramangala", "HSR Layout"
+    streetName?: string;  // Street / Sub-area e.g. "12th Main Road", "Sector 62"
+    landmark?: string;    // Landmark e.g. "Near Metro Pillar 120", "Opposite Forum Mall"
+    pincode?: string;     // 6-digit Pincode e.g. "560034"
     lat: number;
     lng: number;
-    pincode?: string;
   };
   priceINR: number; // ₹ Monthly rent OR sale price for for_sale listings
   pricePerNightUSD: number; // Fallback calculated rate for USD conversion
