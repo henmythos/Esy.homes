@@ -643,174 +643,265 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
             </div>
 
-            {/* Right Column: Direct WhatsApp / Call Booking Card */}
+            {/* Right Column: Direct WhatsApp / Call Booking or Sale Card */}
             <div className="lg:col-span-1">
               <div className="sticky top-20 bg-white rounded-3xl p-5 border border-gray-200 shadow-lg flex flex-col gap-5">
                 
-                {/* Price Display */}
-                <div className="flex flex-col gap-2 border-b border-gray-100 pb-3">
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <span className="text-2xl font-black text-gray-900">
-                        {formatPrice(priceINR, activeCurrency)}
-                      </span>
-                      <span className="text-xs text-gray-500 font-normal">
-                        {isDaily ? ' / night' : ' / month'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs font-bold text-gray-900">
-                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                      <span>{property.rating.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  {property.customRentDetails && (
-                    <div className="p-2.5 bg-rose-50/50 rounded-xl border border-rose-100">
-                      <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wide block mb-1">Pricing Details</span>
-                      <p className="text-xs text-gray-700 whitespace-pre-wrap">{property.customRentDetails}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Date Selection Box - ONLY for Daily Stays */}
-                {isDaily && (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-rose-500" /> Select Availability Dates
-                    </label>
-                    
-                    <div className="grid grid-cols-2 gap-2 border border-gray-200 rounded-2xl p-2 bg-gray-50/50">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold uppercase text-gray-400">Check-in</span>
-                        <input
-                          type="date"
-                          value={checkInDate}
-                          onChange={(e) => setCheckInDate(e.target.value)}
-                          className="bg-transparent text-xs font-bold text-gray-900 outline-hidden cursor-pointer"
-                        />
+                {isForSale ? (
+                  /* FOR SALE Inquiry & Contact Card */
+                  <>
+                    <div className="flex flex-col gap-2 border-b border-gray-100 pb-4">
+                      <div className="flex items-baseline justify-between">
+                        <div>
+                          <span className="text-2xl sm:text-3xl font-black text-teal-700">
+                            {formatSalePrice(property.saleDetails?.salePriceINR || priceINR)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-gray-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          <span>{property.rating.toFixed(1)}</span>
+                        </div>
                       </div>
-                      <div className="flex flex-col border-l border-gray-200 pl-2">
-                        <span className="text-[10px] font-bold uppercase text-gray-400">Check-out</span>
-                        <input
-                          type="date"
-                          value={checkOutDate}
-                          onChange={(e) => setCheckOutDate(e.target.value)}
-                          className="bg-transparent text-xs font-bold text-gray-900 outline-hidden cursor-pointer"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Blocked Dates Warning */}
-                    {property.blockedDates.some((d) => d >= checkInDate && d <= checkOutDate) && (
-                      <p className="text-[11px] text-red-600 font-bold bg-red-50 p-2 rounded-xl border border-red-100 flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Selected dates contain blocked days
+                      <p className="text-xs text-gray-600 font-semibold mt-1">
+                        {property.saleDetails ? getSalePropertyTypeLabel(property.saleDetails.propertyType) : 'Property for Sale'}
+                        {property.saleDetails?.areaSqFt ? ` • ${property.saleDetails.areaSqFt.toLocaleString()} Sq Ft` : ''}
                       </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Guests Selector */}
-                <div className="flex items-center justify-between border border-gray-200 rounded-2xl p-3 bg-gray-50/50">
-                  <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-rose-500" /> Guests / Tenants
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setGuestsCount(Math.max(1, guestsCount - 1))}
-                      className="w-7 h-7 rounded-full border border-gray-300 font-bold text-xs bg-white text-gray-700 hover:bg-gray-100"
-                    >
-                      -
-                    </button>
-                    <span className="text-xs font-bold text-gray-900 w-4 text-center">{guestsCount}</span>
-                    <button
-                      type="button"
-                      onClick={() => setGuestsCount(Math.min(property.maxGuests, guestsCount + 1))}
-                      className="w-7 h-7 rounded-full border border-gray-300 font-bold text-xs bg-white text-gray-700 hover:bg-gray-100"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                {/* Custom Note/Question for Host */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold text-gray-600">
-                    Add custom note to host (optional):
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Early check-in requested..."
-                    value={customMessage}
-                    onChange={(e) => setCustomMessage(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 outline-hidden focus:border-rose-500"
-                  />
-                </div>
-
-                {/* Price Breakdown */}
-                <div className="flex flex-col gap-2 pt-2 border-t border-gray-100 text-xs text-gray-600">
-                  <div className="flex justify-between">
-                    <span>
-                      {formatPrice(priceINR, activeCurrency)} {isDaily ? `x ${nights} night(s)` : ' / month'}
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      {formatPrice(subtotalINR, activeCurrency)}
-                    </span>
-                  </div>
-                  {cleaningFeeINR > 0 && (
-                    <div className="flex justify-between">
-                      <span>Cleaning fee</span>
-                      <span className="font-semibold text-gray-900">
-                        {formatPrice(cleaningFeeINR, activeCurrency)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm font-extrabold text-gray-900 pt-2 border-t border-gray-200">
-                    <span>Total</span>
-                    <span className="text-rose-600">
-                      {formatPrice(totalINR, activeCurrency)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* DIRECT WHATSAPP & PHONE CALL BUTTONS */}
-                <div className="flex flex-col gap-2 pt-2">
-                  <a
-                    href={getWhatsAppUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-                  >
-                    <MessageSquare className="w-4 h-4 fill-white" />
-                    <span>Book via WhatsApp</span>
-                  </a>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <a
-                      href={`tel:${property.owner.phone}`}
-                      className="py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <Phone className="w-3.5 h-3.5 text-rose-500" />
-                      <span>Call Owner</span>
-                    </a>
-
-                    <button
-                      onClick={handleCopyPhone}
-                      className="py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs transition-colors flex items-center justify-center gap-1"
-                    >
-                      {isCopied ? (
-                        <span className="text-emerald-600 flex items-center gap-1">
-                          <Check className="w-3.5 h-3.5" /> Copied
-                        </span>
-                      ) : (
-                        <span>Copy Phone</span>
+                      {property.saleDetails?.loanAvailable && (
+                        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Home Loan Available</span>
+                        </div>
                       )}
-                    </button>
-                  </div>
-                </div>
+                      {property.customRentDetails && (
+                        <div className="p-2.5 bg-teal-50/50 rounded-xl border border-teal-100 mt-2">
+                          <span className="text-[10px] font-bold text-teal-800 uppercase tracking-wide block mb-1">Sale Pricing Details</span>
+                          <p className="text-xs text-gray-700 whitespace-pre-wrap">{property.customRentDetails}</p>
+                        </div>
+                      )}
+                    </div>
 
-                <p className="text-[10px] text-gray-400 text-center leading-tight">
-                  No payment gateway required • Direct communication with property owner
-                </p>
+                    {/* Custom Note for Seller */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[11px] font-semibold text-gray-600">
+                        Add note to seller (optional):
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Requesting a site visit appointment..."
+                        value={customMessage}
+                        onChange={(e) => setCustomMessage(e.target.value)}
+                        className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 outline-none focus:border-teal-500"
+                      />
+                    </div>
+
+                    {/* DIRECT WHATSAPP & PHONE CALL BUTTONS FOR SALE */}
+                    <div className="flex flex-col gap-2 pt-1">
+                      <a
+                        href={getWhatsAppUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                      >
+                        <MessageSquare className="w-4 h-4 fill-white" />
+                        <span>Contact Seller on WhatsApp</span>
+                      </a>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <a
+                          href={`tel:${property.owner.phone}`}
+                          className="py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-teal-600" />
+                          <span>Call Seller</span>
+                        </a>
+
+                        <button
+                          onClick={handleCopyPhone}
+                          className="py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs transition-colors flex items-center justify-center gap-1"
+                        >
+                          {isCopied ? (
+                            <span className="text-emerald-600 flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" /> Copied
+                            </span>
+                          ) : (
+                            <span>Copy Phone</span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-gray-400 text-center leading-tight">
+                      Direct owner contact • Zero brokerage
+                    </p>
+                  </>
+                ) : (
+                  /* RENTAL Booking Card */
+                  <>
+                    <div className="flex flex-col gap-2 border-b border-gray-100 pb-3">
+                      <div className="flex items-baseline justify-between">
+                        <div>
+                          <span className="text-2xl font-black text-gray-900">
+                            {formatPrice(priceINR, activeCurrency)}
+                          </span>
+                          <span className="text-xs text-gray-500 font-normal">
+                            {isDaily ? ' / night' : ' / month'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-gray-900">
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          <span>{property.rating.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      {property.customRentDetails && (
+                        <div className="p-2.5 bg-rose-50/50 rounded-xl border border-rose-100">
+                          <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wide block mb-1">Pricing Details</span>
+                          <p className="text-xs text-gray-700 whitespace-pre-wrap">{property.customRentDetails}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Date Selection Box - ONLY for Daily Stays */}
+                    {isDaily && (
+                      <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-rose-500" /> Select Availability Dates
+                        </label>
+                        
+                        <div className="grid grid-cols-2 gap-2 border border-gray-200 rounded-2xl p-2 bg-gray-50/50">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold uppercase text-gray-400">Check-in</span>
+                            <input
+                              type="date"
+                              value={checkInDate}
+                              onChange={(e) => setCheckInDate(e.target.value)}
+                              className="bg-transparent text-xs font-bold text-gray-900 outline-none cursor-pointer"
+                            />
+                          </div>
+                          <div className="flex flex-col border-l border-gray-200 pl-2">
+                            <span className="text-[10px] font-bold uppercase text-gray-400">Check-out</span>
+                            <input
+                              type="date"
+                              value={checkOutDate}
+                              onChange={(e) => setCheckOutDate(e.target.value)}
+                              className="bg-transparent text-xs font-bold text-gray-900 outline-none cursor-pointer"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Blocked Dates Warning */}
+                        {property.blockedDates.some((d) => d >= checkInDate && d <= checkOutDate) && (
+                          <p className="text-[11px] text-red-600 font-bold bg-red-50 p-2 rounded-xl border border-red-100 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Selected dates contain blocked days
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Guests Selector */}
+                    <div className="flex items-center justify-between border border-gray-200 rounded-2xl p-3 bg-gray-50/50">
+                      <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-rose-500" /> Guests / Tenants
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setGuestsCount(Math.max(1, guestsCount - 1))}
+                          className="w-7 h-7 rounded-full border border-gray-300 font-bold text-xs bg-white text-gray-700 hover:bg-gray-100"
+                        >
+                          -
+                        </button>
+                        <span className="text-xs font-bold text-gray-900 w-4 text-center">{guestsCount}</span>
+                        <button
+                          type="button"
+                          onClick={() => setGuestsCount(Math.min(property.maxGuests, guestsCount + 1))}
+                          className="w-7 h-7 rounded-full border border-gray-300 font-bold text-xs bg-white text-gray-700 hover:bg-gray-100"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Custom Note for Host */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-semibold text-gray-600">
+                        Add custom note to host (optional):
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Early check-in requested..."
+                        value={customMessage}
+                        onChange={(e) => setCustomMessage(e.target.value)}
+                        className="w-full px-3 py-1.5 text-xs rounded-xl border border-gray-200 outline-none focus:border-rose-500"
+                      />
+                    </div>
+
+                    {/* Price Breakdown */}
+                    <div className="flex flex-col gap-2 pt-2 border-t border-gray-100 text-xs text-gray-600">
+                      <div className="flex justify-between">
+                        <span>
+                          {formatPrice(priceINR, activeCurrency)} {isDaily ? `x ${nights} night(s)` : ' / month'}
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          {formatPrice(subtotalINR, activeCurrency)}
+                        </span>
+                      </div>
+                      {cleaningFeeINR > 0 && (
+                        <div className="flex justify-between">
+                          <span>Cleaning fee</span>
+                          <span className="font-semibold text-gray-900">
+                            {formatPrice(cleaningFeeINR, activeCurrency)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm font-extrabold text-gray-900 pt-2 border-t border-gray-200">
+                        <span>Total</span>
+                        <span className="text-rose-600">
+                          {formatPrice(totalINR, activeCurrency)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* DIRECT WHATSAPP & PHONE CALL BUTTONS */}
+                    <div className="flex flex-col gap-2 pt-2">
+                      <a
+                        href={getWhatsAppUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                      >
+                        <MessageSquare className="w-4 h-4 fill-white" />
+                        <span>Book via WhatsApp</span>
+                      </a>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <a
+                          href={`tel:${property.owner.phone}`}
+                          className="py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-800 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-rose-500" />
+                          <span>Call Owner</span>
+                        </a>
+
+                        <button
+                          onClick={handleCopyPhone}
+                          className="py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs transition-colors flex items-center justify-center gap-1"
+                        >
+                          {isCopied ? (
+                            <span className="text-emerald-600 flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" /> Copied
+                            </span>
+                          ) : (
+                            <span>Copy Phone</span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-gray-400 text-center leading-tight">
+                      No payment gateway required • Direct communication with property owner
+                    </p>
+                  </>
+                )}
 
                 {/* DIRECT PREMIUM UPGRADE CTA FOR HOSTS */}
                 {!property.isPremium && (

@@ -16,7 +16,7 @@ const RENTAL_TYPES: { id: 'all' | RentalType; label: string; icon: React.FC<{ cl
   { id: 'pg_hostel',      label: 'PG Hostel',       icon: Users },
   { id: 'monthly_room',   label: 'Monthly Room',    icon: Building2 },
   { id: 'commercial_shop',label: 'Commercial',      icon: Store },
-  { id: 'for_sale',       label: 'For Sale 🏷️',    icon: Tag },
+  { id: 'for_sale',       label: 'For Sale',        icon: Tag },
 ];
 
 export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({

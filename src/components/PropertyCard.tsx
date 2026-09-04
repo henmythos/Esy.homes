@@ -95,7 +95,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         const typeLabel = property.saleDetails
           ? getSalePropertyTypeLabel(property.saleDetails.propertyType)
           : 'For Sale';
-        return { label: `🏷️ ${typeLabel}`, bg: 'bg-teal-600 text-white' };
+        return { label: typeLabel, bg: 'bg-teal-600 text-white' };
       }
       case 'daily_rental':
       default:
@@ -229,7 +229,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {property.saleDetails.areaSqFt && <span>{property.saleDetails.areaSqFt.toLocaleString()} sq ft</span>}
             {property.saleDetails.areaSqYd && !property.saleDetails.areaSqFt && <span>{property.saleDetails.areaSqYd} sq yd</span>}
             {(property.saleDetails.areaSqFt || property.saleDetails.areaSqYd) && <span>•</span>}
-            {property.saleDetails.loanAvailable && <span className="text-emerald-700 font-bold">🏦 Loan Available</span>}
+            {property.saleDetails.loanAvailable && <span className="text-emerald-700 font-bold">Loan Available</span>}
             {property.saleDetails.bhkType && <span>{property.saleDetails.bhkType}</span>}
           </div>
         )}

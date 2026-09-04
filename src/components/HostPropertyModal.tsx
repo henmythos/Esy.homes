@@ -391,7 +391,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
                     { id: 'monthly_room' as RentalType,  label: 'Monthly Room',    sub: 'Flat / 1BHK / 2BHK',    Icon: Building2, color: 'emerald', dur: '90 Days' },
                     { id: 'commercial_shop' as RentalType, label: 'Commercial',    sub: 'Shop / Office / Clinic', Icon: Store,    color: 'purple',  dur: '1 Year' },
                     { id: 'daily_rental' as RentalType,  label: 'Daily Stay',      sub: 'Per Night / Short Stay', Icon: Calendar, color: 'rose',    dur: '1 Year' },
-                    { id: 'for_sale' as RentalType,      label: 'For Sale 🏷️',    sub: 'Plot / House / Flat etc.', Icon: Tag,    color: 'teal',    dur: '1 Year' },
+                    { id: 'for_sale' as RentalType,      label: 'For Sale',       sub: 'Plot / House / Flat etc.', Icon: Tag,    color: 'teal',    dur: '1 Year' },
                   ].map(({ id, label, sub, Icon, color, dur }) => (
                     <button
                       key={id}
@@ -651,7 +651,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-bold text-gray-800">Home Loan Available?</label>
                       <div className="flex gap-2 mt-1">
-                        {[{ val: true, label: 'Yes 🏦' }, { val: false, label: 'No' }].map(opt => (
+                        {[{ val: true, label: 'Yes' }, { val: false, label: 'No' }].map(opt => (
                           <button
                             key={String(opt.val)}
                             type="button"
@@ -777,7 +777,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-bold text-gray-800">PG Type</label>
                         <div className="flex gap-2">
-                          {[{ v: 'mens', l: '👨 Mens PG' }, { v: 'womens', l: '👩 Womens PG' }, { v: 'unisex', l: '🤝 Unisex' }].map(({ v, l }) => (
+                          {[{ v: 'mens', l: 'Mens PG' }, { v: 'womens', l: 'Womens PG' }, { v: 'unisex', l: 'Unisex PG' }].map(({ v, l }) => (
                             <button key={v} type="button" onClick={() => setPgGender(v as any)}
                               className={`flex-1 py-2 rounded-xl border-2 text-[11px] font-bold transition-all ${
                                 pgGender === v ? 'border-blue-500 bg-blue-100 text-blue-900' : 'border-gray-200 bg-white text-gray-700'
@@ -1150,7 +1150,7 @@ export const HostPropertyModal: React.FC<HostPropertyModalProps> = ({ onSaveProp
                 isForSale ? 'bg-teal-600 hover:bg-teal-700' : 'bg-rose-500 hover:bg-rose-600'
               }`}>
               <Check className="w-4 h-4" />
-              Publish Listing 🎉
+              Publish Listing
             </button>
           )}
         </div>
